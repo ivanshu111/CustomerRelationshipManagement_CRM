@@ -5,11 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,6 +21,10 @@ public class Users extends BaseClass{
     @JsonIgnore
     @Column(nullable = false)
     private String password;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "assignedTo")
+    private List<Customers> customers;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "employee_status", nullable = false)
@@ -39,6 +41,11 @@ public class Users extends BaseClass{
 
     @Column(name = "resignation_approved_at")
     private LocalDateTime resignationApprovedAt;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resignation_approved_by")
+    private Users resignationApprovedBy;
 
     @Column(name = "blocked_reason")
     private String blockedReason;
@@ -57,6 +64,11 @@ public class Users extends BaseClass{
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by")
+    private Users deletedBy;
 
     public boolean isCurrentlyBlocked() {
         if (this.employeeStatus == EmployeeStatus.BLOCKED) {
