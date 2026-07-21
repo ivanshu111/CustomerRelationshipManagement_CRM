@@ -22,6 +22,9 @@ public class Users extends BaseClass{
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @JsonIgnore
     @OneToMany(mappedBy = "assignedTo")
     private List<Customers> customers;
