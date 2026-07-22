@@ -80,7 +80,7 @@ public class AuthController {
     }
 
     @PostMapping("/request-access")
-    public ResponseEntity<?> requestAccess(@ResponseBody RegisterRequestDto registerRequestDto){
+    public ResponseEntity<?> requestAccess(@RequestBody RegisterRequestDto registerRequestDto){
         authService.requestAccess(registerRequestDto);
         return ResponseEntity.ok("Access request submitted successfully");
     }
