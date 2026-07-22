@@ -53,4 +53,11 @@ public class AdminController {
        return ResponseEntity.ok(interactions);
     }
 
+    @GetMapping("/employees/resignations")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getResignationRequests() {
+        List<EmployeeResponseDto> requests = adminService.getResignationRequests();
+        return ResponseEntity.ok(requests);
+    }
+
 }
