@@ -8,4 +8,6 @@ import java.util.List;
 public interface AdminService {
     List<EmployeeResponseDto> getAllEmployees();
     List<CustomerResponseDto> getAllCustomersOfEmployee(Integer id);
+
+    EmployeeResponseDto getEmployeeById(Integer id);
 }
