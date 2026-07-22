@@ -2,6 +2,10 @@ package com.sunbeam.CRM.controller;
 
 import java.util.List;
 
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.service.AdminService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +31,12 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllEmployees(){
         return ResponseEntity.ok(adminService.getAllEmployees());
+    }
+
+    @GetMapping("/employees/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getEmployeeById(@PathVariable Integer id ){
+        return ResponseEntity.ok(adminService.getEmployeeById(id));
     }
 
     @GetMapping("/employee/{id}/customers")

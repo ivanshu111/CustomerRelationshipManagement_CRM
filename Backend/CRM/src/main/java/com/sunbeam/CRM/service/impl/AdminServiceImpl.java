@@ -42,6 +42,7 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     public List<CustomerResponseDto> getAllCustomersOfEmployee(Integer id) {
         Users employee = userRepository.findById(id)
@@ -62,6 +63,13 @@ public class AdminServiceImpl implements AdminService {
                 }).toList();
     }
 
+
+    @Override
+    public EmployeeResponseDto getEmployeeById(Integer id) {
+        Users user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+        return mapToDto(user);
+    }
 
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;

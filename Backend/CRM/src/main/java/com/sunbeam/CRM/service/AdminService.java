@@ -10,4 +10,6 @@ public interface AdminService {
     List<EmployeeResponseDto> getAllEmployees();
     List<CustomerResponseDto> getAllCustomersOfEmployee(Integer id);
      List<InteractionResponseDto> getAllInteractions();
+
+    EmployeeResponseDto getEmployeeById(Integer id);
 }
