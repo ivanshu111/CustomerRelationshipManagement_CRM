@@ -18,4 +18,6 @@ public interface AdminService {
     List<EmployeeResponseDto> getResignationRequests();
 
     Page<CustomerResponseDto> getAllCustomers(String search, Pageable pageable);
+
+    void approveResignation(Integer employeeId);
 }

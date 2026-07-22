@@ -1,6 +1,6 @@
 package com.sunbeam.CRM.service.impl;
 
-import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.repository.CustomerRepository;
