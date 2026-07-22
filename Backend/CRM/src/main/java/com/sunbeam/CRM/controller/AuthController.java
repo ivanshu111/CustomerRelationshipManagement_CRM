@@ -73,4 +73,9 @@ public class AuthController {
 
         return ResponseEntity.ok(new LoginResponse(jwtToken,role));
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(){
+        return ResponseEntity.ok(authService.getProfile());
+    }
 }

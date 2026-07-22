@@ -1,13 +1,16 @@
 package com.sunbeam.CRM.service.impl;
 
 import com.sunbeam.CRM.dto.RegisterRequestDto;
+import com.sunbeam.CRM.dto.UserResponseDto;
 import com.sunbeam.CRM.entities.EmployeeStatus;
 import com.sunbeam.CRM.entities.Role;
 import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.repository.UserRepository;
 import com.sunbeam.CRM.service.AuthService;
+import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +20,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final ModelMapper modelMapper;
 
     @Override
     public void register(RegisterRequestDto registerRequest) {
@@ -35,5 +38,14 @@ public class AuthServiceImpl implements AuthService {
         user.setEmployeeStatus(EmployeeStatus.ACTIVE);
 
         userRepository.save(user);
+    }
+
+    @Override
+    public UserResponseDto getProfile() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+
+        return modelMapper.map(user,UserResponseDto.class);
     }
 }
