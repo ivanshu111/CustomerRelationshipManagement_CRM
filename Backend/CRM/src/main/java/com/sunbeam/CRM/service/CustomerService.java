@@ -7,4 +7,6 @@ import java.util.List;
 public interface CustomerService {
     List<CustomerResponseDto> getInterestedCustomers();
     CustomerResponseDto getCustomerById(Integer customerId);
+
+    List<CustomerResponseDto> getMyCustomers();
 }

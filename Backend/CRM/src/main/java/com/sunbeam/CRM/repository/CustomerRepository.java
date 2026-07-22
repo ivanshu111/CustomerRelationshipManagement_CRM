@@ -24,4 +24,6 @@ public interface CustomerRepository extends JpaRepository<Customers, Integer> {
     Optional<Customers> findByIdAndAssignedTo(Integer id, Users assignedTo);
 
     Page<Customers> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    List<Customers> findByAssignedTo(Users assignedTo);
 }

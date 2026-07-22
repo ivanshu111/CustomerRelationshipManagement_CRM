@@ -59,6 +59,24 @@ public class CustomerServiceImpl implements CustomerService {
         return mapToResponseDto(customer);
     }
 
+    @Override
+    public List<CustomerResponseDto> getMyCustomers() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Find user
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get customers assigned to this user
+        List<Customers> customers = customerRepository.findByAssignedTo(loggedInUser);
+
+        // Map to Response DTO using lambda expression as requested
+        return customers.stream()
+                .map(customer -> mapToResponseDto(customer))
+                .toList();
+
+    }
+
     private CustomerResponseDto mapToResponseDto(Customers customer) {
         CustomerResponseDto responseDto = modelMapper.map(customer, CustomerResponseDto.class);
         responseDto.setAssignedToName(customer.getAssignedTo() != null ? customer.getAssignedTo().getName() : "None");
