@@ -9,4 +9,6 @@ public interface CustomerService {
     CustomerResponseDto getCustomerById(Integer customerId);
 
     List<CustomerResponseDto> getMyCustomers();
+
+    List<CustomerResponseDto> getPendingCustomers();
 }

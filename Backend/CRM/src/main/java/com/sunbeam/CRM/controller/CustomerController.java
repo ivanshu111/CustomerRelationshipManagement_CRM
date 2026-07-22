@@ -37,4 +37,10 @@ public class CustomerController {
     public ResponseEntity<?> getMyCustomers(){
         return ResponseEntity.ok(customerService.getMyCustomers());
     }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> getPendingCustomers(){
+        return ResponseEntity.ok(customerService.getPendingCustomers());
+    }
 }
