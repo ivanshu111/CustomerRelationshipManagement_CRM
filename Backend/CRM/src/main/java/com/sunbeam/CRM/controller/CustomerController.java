@@ -31,4 +31,10 @@ public class CustomerController {
         CustomerResponseDto customer = customerService.getCustomerById(id);
         return ResponseEntity.ok(customer);
     }
+
+    @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> getMyCustomers(){
+        return ResponseEntity.ok(customerService.getMyCustomers());
+    }
 }
