@@ -68,4 +68,11 @@ public class AdminController {
         return ResponseEntity.ok(customers);
     }
 
+    @PutMapping("/employees/{id}/approve-resignation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveResignation(@PathVariable Integer id) {
+        adminService.approveResignation(id);
+        return ResponseEntity.ok("Employee resignation approved successfully");
+    }
+
 }

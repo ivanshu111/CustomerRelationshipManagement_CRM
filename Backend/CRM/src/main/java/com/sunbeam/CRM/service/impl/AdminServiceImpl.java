@@ -1,16 +1,19 @@
 package com.sunbeam.CRM.service.impl;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
 import com.sunbeam.CRM.dto.InteractionResponseDto;
@@ -90,6 +93,35 @@ public class AdminServiceImpl implements AdminService {
             customers = customerRepository.findAll(pageable);
         }
         return customers.map(this::mapToCustomerDto);
+    }
+
+    @Override
+    @Transactional
+    public void approveResignation(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING_RESIGNATION) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING_RESIGNATION status");
+        }
+
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with email: " + adminEmail));
+
+        // Update employee status to RESIGNED
+        employee.setEmployeeStatus(EmployeeStatus.RESIGNED);
+        employee.setResignationApprovedAt(LocalDateTime.now());
+        employee.setResignationApprovedBy(admin);
+
+        // Reassign all customers to ADMIN
+        List<Customers> customers = customerRepository.findByAssignedTo(employee);
+        for (Customers customer : customers) {
+            customer.setAssignedTo(admin);
+        }
+        customerRepository.saveAll(customers);
+
+        userRepository.save(employee);
     }
 
     private EmployeeResponseDto mapToDto(Users user) {

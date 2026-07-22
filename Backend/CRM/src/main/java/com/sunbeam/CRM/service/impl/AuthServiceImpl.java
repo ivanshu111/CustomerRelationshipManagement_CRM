@@ -1,6 +1,6 @@
 package com.sunbeam.CRM.service.impl;
 
-import com.sunbeam.CRM.customer_expection.UserAlreadyExistsException;
+import com.sunbeam.CRM.exception.UserAlreadyExistsException;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.dto.UserResponseDto;
 import com.sunbeam.CRM.entities.EmployeeStatus;
@@ -8,7 +8,7 @@ import com.sunbeam.CRM.entities.Role;
 import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.repository.UserRepository;
 import com.sunbeam.CRM.service.AuthService;
-import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
