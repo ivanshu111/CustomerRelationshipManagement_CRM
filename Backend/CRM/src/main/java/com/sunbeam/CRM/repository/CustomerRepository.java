@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customers, Integer> {
     List<Customers> findByAssignedToId(Integer id);
@@ -17,4 +18,6 @@ public interface CustomerRepository extends JpaRepository<Customers, Integer> {
 
     @Query("SELECT DISTINCT c FROM Customers c JOIN c.leads l WHERE l.status = :status")
     List<Customers> findByLeadStatus(@Param("status") LeadStatus status);
+
+    Optional<Customers> findByIdAndAssignedTo(Integer id, Users assignedTo);
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,5 +23,12 @@ public class CustomerController {
     public ResponseEntity<?> getInterestedCustomers(){
         List<CustomerResponseDto> customers = customerService.getInterestedCustomers();
         return ResponseEntity.ok(customers);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> getCustomerById(@PathVariable Integer id){
+        CustomerResponseDto customer = customerService.getCustomerById(id);
+        return ResponseEntity.ok(customer);
     }
 }
