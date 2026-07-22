@@ -124,6 +124,20 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(employee);
     }
 
+    @Override
+    @Transactional
+    public void approveAccessRequest(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING status");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        userRepository.save(employee);
+    }
+
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;
         EmployeeResponseDto dto = modelMapper.map(user, EmployeeResponseDto.class);
