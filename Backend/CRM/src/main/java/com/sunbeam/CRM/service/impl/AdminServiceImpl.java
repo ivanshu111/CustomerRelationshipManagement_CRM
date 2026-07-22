@@ -1,20 +1,28 @@
 package com.sunbeam.CRM.service.impl;
 
-import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.entities.*;
-import com.sunbeam.CRM.repository.CustomerRepository;
-import com.sunbeam.CRM.repository.UserRepository;
-import com.sunbeam.CRM.service.AdminService;
-import lombok.RequiredArgsConstructor;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.entities.Customers;
+import com.sunbeam.CRM.entities.EmployeeStatus;
+import com.sunbeam.CRM.entities.Leads;
+import com.sunbeam.CRM.entities.Role;
+import com.sunbeam.CRM.entities.Users;
+import com.sunbeam.CRM.repository.CustomerRepository;
+import com.sunbeam.CRM.repository.InteractionRepository;
+import com.sunbeam.CRM.repository.UserRepository;
+import com.sunbeam.CRM.service.AdminService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,6 +32,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final CustomerRepository customerRepository;
+    private final InteractionRepository interactionRepository;
 
     @Override
     public List<EmployeeResponseDto> getAllEmployees() {
@@ -42,6 +51,18 @@ public class AdminServiceImpl implements AdminService {
                 .map(customer -> mapToCustomerDto(customer))
                 .toList();
     }
+
+     @Override
+    public List<InteractionResponseDto> getAllInteractions() {
+        return interactionRepository.findAll().stream()
+                .map(interaction -> {
+                    InteractionResponseDto dto = modelMapper.map(interaction, InteractionResponseDto.class);
+                    dto.setEmployee(mapToDto(interaction.getEmployee()));
+                    dto.setCustomer(mapToCustomerDto(interaction.getCustomer()));
+                    return dto;
+                }).toList();
+    }
+
 
     @Override
     public EmployeeResponseDto getEmployeeById(Integer id) {
