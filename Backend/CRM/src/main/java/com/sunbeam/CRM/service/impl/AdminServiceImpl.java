@@ -71,6 +71,15 @@ public class AdminServiceImpl implements AdminService {
         return mapToDto(user);
     }
 
+
+    public List<EmployeeResponseDto> getResignationRequests() {
+            List<Users> users = userRepository.findByRoleAndEmployeeStatus(Role.EMPLOYEE, EmployeeStatus.PENDING_RESIGNATION);
+            return users.stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+    }
+
+
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;
         EmployeeResponseDto dto = modelMapper.map(user, EmployeeResponseDto.class);
