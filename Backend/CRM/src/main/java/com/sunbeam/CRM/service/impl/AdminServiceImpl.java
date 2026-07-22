@@ -1,9 +1,10 @@
 package com.sunbeam.CRM.service.impl;
 
+import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
+import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.entities.EmployeeStatus;
-import com.sunbeam.CRM.entities.Role;
-import com.sunbeam.CRM.entities.Users;
+import com.sunbeam.CRM.entities.*;
+import com.sunbeam.CRM.repository.CustomerRepository;
 import com.sunbeam.CRM.repository.UserRepository;
 import com.sunbeam.CRM.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final CustomerRepository customerRepository;
 
     @Override
     public List<EmployeeResponseDto> getAllEmployees() {
@@ -29,6 +31,15 @@ public class AdminServiceImpl implements AdminService {
         return users.stream()
                 .map(user -> mapToDto(user))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CustomerResponseDto> getAllCustomersOfEmployee(Integer id) {
+        Users employee = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+        return customerRepository.findByAssignedToId(id).stream()
+                .map(customer -> mapToCustomerDto(customer))
+                .toList();
     }
 
     private EmployeeResponseDto mapToDto(Users user) {
@@ -42,6 +53,22 @@ public class AdminServiceImpl implements AdminService {
         }
         if (user.getDeletedBy() != null) {
             dto.setDeletedByEmail(user.getDeletedBy().getEmail());
+        }
+        return dto;
+    }
+
+    private CustomerResponseDto mapToCustomerDto(Customers customer) {
+        if (customer == null) return null;
+        CustomerResponseDto dto = modelMapper.map(customer, CustomerResponseDto.class);
+        if (customer.getAssignedTo() != null) {
+            dto.setAssignedToName(customer.getAssignedTo().getName());
+        }
+        if (customer.getLeads() != null && !customer.getLeads().isEmpty()) {
+            customer.getLeads().stream()
+                    .max(java.util.Comparator.comparing(Leads::getId))
+                    .ifPresent(latestLead -> dto.setStatus(latestLead.getStatus().name()));
+        } else {
+            dto.setStatus("PENDING");
         }
         return dto;
     }
