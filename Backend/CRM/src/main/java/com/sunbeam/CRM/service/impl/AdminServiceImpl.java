@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +81,16 @@ public class AdminServiceImpl implements AdminService {
                     .collect(Collectors.toList());
     }
 
+    @Override
+    public Page<CustomerResponseDto> getAllCustomers(String search, Pageable pageable) {
+        Page<Customers> customers;
+        if (search != null && !search.trim().isEmpty()) {
+            customers = customerRepository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            customers = customerRepository.findAll(pageable);
+        }
+        return customers.map(this::mapToCustomerDto);
+    }
 
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;

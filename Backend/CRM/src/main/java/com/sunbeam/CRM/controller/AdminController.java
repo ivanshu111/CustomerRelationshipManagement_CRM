@@ -6,12 +6,11 @@ import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
 import com.sunbeam.CRM.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.InteractionResponseDto;
@@ -58,6 +57,15 @@ public class AdminController {
     public ResponseEntity<?> getResignationRequests() {
         List<EmployeeResponseDto> requests = adminService.getResignationRequests();
         return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/customers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllCustomers(
+            @RequestParam(required = false) String search,
+            Pageable pageable){
+        Page<CustomerResponseDto> customers = adminService.getAllCustomers(search, pageable);
+        return ResponseEntity.ok(customers);
     }
 
 }
