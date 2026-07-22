@@ -41,6 +41,24 @@ public class CustomerServiceImpl implements CustomerService {
         return customers.stream().map(customer -> mapToResponseDto(customer)).collect(Collectors.toList());
     }
 
+    @Override
+    public CustomerResponseDto getCustomerById(Integer customerId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Customers customer;
+        if (loggedInUser.getRole() == Role.ADMIN) {
+            customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+        } else {
+            customer = customerRepository.findByIdAndAssignedTo(customerId, loggedInUser)
+                    .orElseThrow(() -> new RuntimeException("Customer not found or not assigned to you"));
+        }
+
+        return mapToResponseDto(customer);
+    }
+
     private CustomerResponseDto mapToResponseDto(Customers customer) {
         CustomerResponseDto responseDto = modelMapper.map(customer, CustomerResponseDto.class);
         responseDto.setAssignedToName(customer.getAssignedTo() != null ? customer.getAssignedTo().getName() : "None");
