@@ -75,4 +75,11 @@ public class AdminController {
         return ResponseEntity.ok("Employee resignation approved successfully");
     }
 
+    @PostMapping("/access-requests/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveAccessRequest(@PathVariable Integer id) {
+        adminService.approveAccessRequest(id);
+        return ResponseEntity.ok("Access request approved successfully");
+    }
+
 }
