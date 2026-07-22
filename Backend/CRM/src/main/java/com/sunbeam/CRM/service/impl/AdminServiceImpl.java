@@ -39,7 +39,7 @@ public class AdminServiceImpl implements AdminService {
         List<Users> users = userRepository.findByRoleAndEmployeeStatusNot(Role.EMPLOYEE, EmployeeStatus.DELETED);
         return users.stream()
                 .map(user -> mapToDto(user))
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
