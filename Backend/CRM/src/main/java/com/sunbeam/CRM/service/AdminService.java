@@ -5,6 +5,8 @@ import java.util.List;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
 import com.sunbeam.CRM.dto.InteractionResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface AdminService {
     List<EmployeeResponseDto> getAllEmployees();
@@ -14,4 +16,6 @@ public interface AdminService {
     EmployeeResponseDto getEmployeeById(Integer id);
 
     List<EmployeeResponseDto> getResignationRequests();
+
+    Page<CustomerResponseDto> getAllCustomers(String search, Pageable pageable);
 }
