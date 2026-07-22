@@ -12,4 +12,6 @@ public interface AdminService {
      List<InteractionResponseDto> getAllInteractions();
 
     EmployeeResponseDto getEmployeeById(Integer id);
+
+    List<EmployeeResponseDto> getResignationRequests();
 }

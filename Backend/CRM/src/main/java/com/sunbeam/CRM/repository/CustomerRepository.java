@@ -12,9 +12,9 @@ import java.util.List;
 public interface CustomerRepository extends JpaRepository<Customers, Integer> {
     List<Customers> findByAssignedToId(Integer id);
 
-    @Query("SELECT DISTINCT c FROM Customer c JOIN c.leads l WHERE c.assignedTo = :employee AND l.status = :status")
+    @Query("SELECT DISTINCT c FROM Customers c JOIN c.leads l WHERE c.assignedTo = :employee AND l.status = :status")
     List<Customers> findByAssignedToAndLeadStatus(@Param("employee") Users employee, @Param("status") LeadStatus status);
 
-    @Query("SELECT DISTINCT c FROM Customer c JOIN c.leads l WHERE l.status = :status")
+    @Query("SELECT DISTINCT c FROM Customers c JOIN c.leads l WHERE l.status = :status")
     List<Customers> findByLeadStatus(@Param("status") LeadStatus status);
 }
