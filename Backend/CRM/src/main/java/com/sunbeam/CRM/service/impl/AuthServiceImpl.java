@@ -1,5 +1,6 @@
 package com.sunbeam.CRM.service.impl;
 
+import com.sunbeam.CRM.customer_expection.UserAlreadyExistsException;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.dto.UserResponseDto;
 import com.sunbeam.CRM.entities.EmployeeStatus;
@@ -47,5 +48,21 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
         return modelMapper.map(user,UserResponseDto.class);
+    }
+
+    @Override
+    public void requestAccess(RegisterRequestDto registerRequestDto) {
+        if(userRepository.existsByEmail(registerRequestDto.getEmail())){
+            throw new UserAlreadyExistsException("Email already exists");
+        }
+
+        Users user = new Users();
+        user.setName(registerRequestDto.getName());
+        user.setEmail(registerRequestDto.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequestDto.getPassword()));
+        user.setRole(Role.EMPLOYEE);
+        user.setEmployeeStatus(EmployeeStatus.PENDING);
+
+        userRepository.save(user);
     }
 }

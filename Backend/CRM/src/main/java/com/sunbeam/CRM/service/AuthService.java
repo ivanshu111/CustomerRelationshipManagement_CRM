@@ -7,4 +7,6 @@ public interface AuthService {
     void register(RegisterRequestDto registerRequestDto);
 
     UserResponseDto getProfile();
+
+    void requestAccess(RegisterRequestDto registerRequestDto);
 }
