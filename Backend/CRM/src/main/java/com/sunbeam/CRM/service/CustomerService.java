@@ -1,0 +1,9 @@
+package com.sunbeam.CRM.service;
+
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+
+import java.util.List;
+
+public interface CustomerService {
+    List<CustomerResponseDto> getInterestedCustomers();
+}
