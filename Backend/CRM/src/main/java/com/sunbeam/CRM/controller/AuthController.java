@@ -78,4 +78,10 @@ public class AuthController {
     public ResponseEntity<?> getProfile(){
         return ResponseEntity.ok(authService.getProfile());
     }
+
+    @PostMapping("/request-access")
+    public ResponseEntity<?> requestAccess(@ResponseBody RegisterRequestDto registerRequestDto){
+        authService.requestAccess(registerRequestDto);
+        return ResponseEntity.ok("Access request submitted successfully");
+    }
 }
