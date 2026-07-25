@@ -55,4 +55,11 @@ public class CustomerController {
     public ResponseEntity<?> getNotInterestedCustomers(){
         return ResponseEntity.ok(customerService.getNotInterestedCustomers());
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> updateCustomer(@PathVariable Integer id, @Valid @RequestBody CustomerRequestDto dto){
+        CustomerResponseDto customer = customerService.updateCustomer(id, dto);
+        return ResponseEntity.ok(customer);
+    }
 }
