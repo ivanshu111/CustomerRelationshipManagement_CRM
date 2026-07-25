@@ -235,6 +235,34 @@ public class CustomerServiceImpl implements CustomerService {
         return mapToResponseDto(updatedCustomer);
     }
 
+    @Override
+    public long getCustomerCount(Integer employeeId) {
+
+        //get the currently logged-in user's email
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        //takes the email and look up in db for user profile
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (employeeId != null) {
+            if (loggedInUser.getRole() == Role.ADMIN) {
+                Users targetUser = userRepository.findById(employeeId)
+                        .orElseThrow(() -> new RuntimeException("Employee not found"));
+                return customerRepository.countByAssignedTo(targetUser);
+            } else if (!loggedInUser.getId().equals(employeeId)) {
+                throw new RuntimeException("You are not authorized to fetch another employee's customer count.");
+            }
+        }
+
+        // If Admin and no employeeId, return total count
+        if (loggedInUser.getRole() == Role.ADMIN) {
+            return customerRepository.count();
+        }
+
+        return customerRepository.countByAssignedTo(loggedInUser);
+    }
+
     private CustomerResponseDto mapToResponseDto(Customers customer) {
         CustomerResponseDto responseDto = modelMapper.map(customer, CustomerResponseDto.class);
         responseDto.setAssignedToName(customer.getAssignedTo() != null ? customer.getAssignedTo().getName() : "None");

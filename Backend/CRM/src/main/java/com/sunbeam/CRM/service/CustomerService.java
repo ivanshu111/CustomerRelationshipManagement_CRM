@@ -21,4 +21,6 @@ public interface CustomerService {
     List<CustomerResponseDto> getNotInterestedCustomers();
 
     CustomerResponseDto updateCustomer(Integer customerId, CustomerRequestDto customerRequestDto);
+
+    long getCustomerCount(Integer employeeId);
 }
