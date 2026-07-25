@@ -1,14 +1,13 @@
 package com.sunbeam.CRM.controller;
 
+import com.sunbeam.CRM.dto.CustomerRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,6 +28,13 @@ public class CustomerController {
     @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
     public ResponseEntity<?> getCustomerById(@PathVariable Integer id){
         CustomerResponseDto customer = customerService.getCustomerById(id);
+        return ResponseEntity.ok(customer);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> addCustomer(@Valid @RequestBody CustomerRequestDto dto){
+        CustomerResponseDto customer= customerService.addCustomer(dto);
         return ResponseEntity.ok(customer);
     }
 

@@ -2,9 +2,9 @@ package com.sunbeam.CRM.controller;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.service.AdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
 import com.sunbeam.CRM.service.AdminService;
 
 import lombok.RequiredArgsConstructor;
@@ -66,6 +65,34 @@ public class AdminController {
             Pageable pageable){
         Page<CustomerResponseDto> customers = adminService.getAllCustomers(search, pageable);
         return ResponseEntity.ok(customers);
+    }
+
+    @PutMapping("/employees/{id}/approve-resignation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveResignation(@PathVariable Integer id) {
+        adminService.approveResignation(id);
+        return ResponseEntity.ok("Employee resignation approved successfully");
+    }
+
+    @PostMapping("/access-requests/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveAccessRequest(@PathVariable Integer id) {
+        adminService.approveAccessRequest(id);
+        return ResponseEntity.ok("Access request approved successfully");
+    }
+
+    @PutMapping("/employees/{id}/block")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> blockEmployee(@PathVariable Integer id, @Valid @RequestBody BlockRequestDto blockRequestDto) {
+        adminService.blockEmployee(id, blockRequestDto);
+        return ResponseEntity.ok("Employee blocked successfully");
+    }
+
+    @PutMapping("/employees/{id}/unblock")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> unblockEmployee(@PathVariable Integer id) {
+        adminService.unblockEmployee(id);
+        return ResponseEntity.ok("Employee unblocked successfully");
     }
 
 }
