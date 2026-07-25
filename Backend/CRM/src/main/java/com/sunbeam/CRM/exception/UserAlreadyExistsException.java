@@ -1,4 +1,4 @@
-package com.sunbeam.CRM.customer_expection;
+package com.sunbeam.CRM.exception;
 
 public class UserAlreadyExistsException extends RuntimeException {
 

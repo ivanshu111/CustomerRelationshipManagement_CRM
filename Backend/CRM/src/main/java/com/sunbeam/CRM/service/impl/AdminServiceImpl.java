@@ -1,19 +1,20 @@
 package com.sunbeam.CRM.service.impl;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sunbeam.CRM.dto.*;
+import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sunbeam.CRM.customer_expection.ResourceNotFoundException;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.entities.Customers;
 import com.sunbeam.CRM.entities.EmployeeStatus;
 import com.sunbeam.CRM.entities.Leads;
@@ -90,6 +91,118 @@ public class AdminServiceImpl implements AdminService {
             customers = customerRepository.findAll(pageable);
         }
         return customers.map(this::mapToCustomerDto);
+    }
+
+    @Override
+    @Transactional
+    public void approveResignation(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING_RESIGNATION) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING_RESIGNATION status");
+        }
+
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with email: " + adminEmail));
+
+        // Update employee status to RESIGNED
+        employee.setEmployeeStatus(EmployeeStatus.RESIGNED);
+        employee.setResignationApprovedAt(LocalDateTime.now());
+        employee.setResignationApprovedBy(admin);
+
+        // Reassign all customers to ADMIN
+        List<Customers> customers = customerRepository.findByAssignedTo(employee);
+        for (Customers customer : customers) {
+            customer.setAssignedTo(admin);
+        }
+        customerRepository.saveAll(customers);
+
+        userRepository.save(employee);
+    }
+
+
+
+    @Override
+    @Transactional
+    public void approveAccessRequest(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING status");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        userRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void blockEmployee(Integer employeeId, BlockRequestDto requestDto) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getRole() == Role.ADMIN) {
+            throw new InvalidEmployeeStateException("Admins cannot be blocked");
+        }
+
+        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED || employee.getEmployeeStatus() == EmployeeStatus.RESIGNED) {
+            throw new InvalidEmployeeStateException("Cannot block an employee who is soft-deleted or resigned");
+        }
+
+        int durationDays = requestDto.getBlockDuration() != null ? requestDto.getBlockDuration() : 7;
+
+        employee.setEmployeeStatus(EmployeeStatus.BLOCKED);
+        employee.setBlockedReason(requestDto.getBlockReason());
+        employee.setBlockedAt(LocalDateTime.now());
+        employee.setBlockedUntil(LocalDateTime.now().plusDays(durationDays));
+
+        userRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void unblockEmployee(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.BLOCKED) {
+            throw new InvalidEmployeeStateException("Employee is not blocked");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        employee.setBlockedReason(null);
+        employee.setBlockedAt(null);
+        employee.setBlockedUntil(null);
+        employee.setBlockRemovalRequested(false);
+        employee.setBlockRemovalReason(null);
+
+        userRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void submitResignation(ResignationRequestDto requestDto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users employee = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with email: " + email));
+
+        if (employee.getRole() != Role.EMPLOYEE) {
+            throw new InvalidEmployeeStateException("Only employees can submit resignation");
+        }
+
+        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED || employee.getEmployeeStatus() == EmployeeStatus.RESIGNED) {
+            throw new InvalidEmployeeStateException("Cannot resign. Current status: " + employee.getEmployeeStatus());
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.PENDING_RESIGNATION);
+        employee.setResignationReason(requestDto.getResignationReason());
+        employee.setLastWorkingDate(requestDto.getLastWorkingDate());
+        employee.setResignationRequestedAt(LocalDateTime.now());
+
+        userRepository.save(employee);
     }
 
     private EmployeeResponseDto mapToDto(Users user) {
