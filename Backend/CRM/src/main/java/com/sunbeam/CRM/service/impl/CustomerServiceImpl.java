@@ -131,6 +131,37 @@ public class CustomerServiceImpl implements CustomerService {
         return mapToResponseDto(savedCustomer);
     }
 
+    @Override
+    @Transactional
+    public void updateLeadStatus(Integer customerId, LeadStatus status) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Customers customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        // If user is EMPLOYEE, they can only update status for their own customers
+        if (loggedInUser.getRole() == Role.EMPLOYEE) {
+            if (customer.getAssignedTo() == null || !customer.getAssignedTo().getId().equals(loggedInUser.getId())) {
+                throw new RuntimeException("You are not authorized to update status for this customer.");
+            }
+        }
+
+        // Get latest lead for this customer
+        Leads latestLead = leadsRepository.findTopByCustomerIdOrderByIdDesc(customerId)
+                .orElseGet(() -> {
+                    Leads newLead = new Leads();
+                    newLead.setCustomer(customer);
+                    newLead.setEmployee(customer.getAssignedTo());
+                    return newLead;
+                });
+
+        latestLead.setStatus(status);
+
+        leadsRepository.save(latestLead);
+    }
+
     private CustomerResponseDto mapToResponseDto(Customers customer) {
         CustomerResponseDto responseDto = modelMapper.map(customer, CustomerResponseDto.class);
         responseDto.setAssignedToName(customer.getAssignedTo() != null ? customer.getAssignedTo().getName() : "None");
