@@ -180,6 +180,22 @@ public class CustomerServiceImpl implements CustomerService {
         leadsRepository.save(latestLead);
     }
 
+    @Override
+    public List<CustomerResponseDto> getNotInterestedCustomers() {
+        String email= SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser= userRepository.findByEmail(email)
+                .orElseThrow(()->new RuntimeException("User not found"));
+
+        List<Customers> customers;
+        if(loggedInUser.getRole() == Role.ADMIN){
+            customers= customerRepository.findByLeadStatus(LeadStatus.NOT_INTERESTED);
+        }else{
+            customers=customerRepository.findByAssignedToAndLeadStatus(loggedInUser, LeadStatus.NOT_INTERESTED);
+        }
+
+        return customers.stream().map(customer -> mapToResponseDto(customer)).collect(Collectors.toList());
+    }
+
     private CustomerResponseDto mapToResponseDto(Customers customer) {
         CustomerResponseDto responseDto = modelMapper.map(customer, CustomerResponseDto.class);
         responseDto.setAssignedToName(customer.getAssignedTo() != null ? customer.getAssignedTo().getName() : "None");

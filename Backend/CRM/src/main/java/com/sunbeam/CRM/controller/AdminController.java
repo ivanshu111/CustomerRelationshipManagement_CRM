@@ -14,9 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.service.AdminService;
-
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -109,4 +106,24 @@ public class AdminController {
         adminService.restoreEmployee(id);
         return ResponseEntity.ok("Employee restored successfully");
     }
+
+    @GetMapping("/analytics/best-employee")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getBestPerformingEmployee(){
+        String bestEmployee = adminService.getBestPerformingEmployee();
+
+        if(bestEmployee == null){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(bestEmployee);
+    }
+
+    @DeleteMapping("/employees/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> softDeleteEmployee(@PathVariable Integer id) {
+        adminService.softDeleteEmployee(id);
+        return ResponseEntity.ok("Employee soft deleted successfully");
+    }
+
+
 }
