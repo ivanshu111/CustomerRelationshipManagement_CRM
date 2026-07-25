@@ -19,4 +19,6 @@ public interface CustomerService {
     void updateLeadStatus(Integer customerId,  LeadStatus status);
 
     List<CustomerResponseDto> getNotInterestedCustomers();
+
+    CustomerResponseDto updateCustomer(Integer customerId, CustomerRequestDto customerRequestDto);
 }

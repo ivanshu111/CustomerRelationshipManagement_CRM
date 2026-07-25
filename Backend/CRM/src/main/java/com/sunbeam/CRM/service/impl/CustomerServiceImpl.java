@@ -180,6 +180,7 @@ public class CustomerServiceImpl implements CustomerService {
         leadsRepository.save(latestLead);
     }
 
+
     @Override
     public List<CustomerResponseDto> getNotInterestedCustomers() {
         String email= SecurityContextHolder.getContext().getAuthentication().getName();
@@ -194,6 +195,44 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         return customers.stream().map(customer -> mapToResponseDto(customer)).collect(Collectors.toList());
+    }
+
+    @Override
+    public CustomerResponseDto updateCustomer(Integer customerId, CustomerRequestDto customerRequestDto) {
+        // Get logged-in user
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Find customer
+        Customers customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        // Logic: if role is EMPLOYEE, check if customer is assigned to them
+        if (loggedInUser.getRole() == Role.EMPLOYEE) {
+            if (customer.getAssignedTo() == null || !customer.getAssignedTo().getId().equals(loggedInUser.getId())) {
+                throw new RuntimeException("You are not authorized to update this customer information.");
+            }
+        }
+
+        // Update fields
+        if (customerRequestDto.getName() != null) customer.setName(customerRequestDto.getName());
+        if (customerRequestDto.getEmail() != null) customer.setEmail(customerRequestDto.getEmail());
+        if (customerRequestDto.getPhone() != null) customer.setPhone(customerRequestDto.getPhone());
+
+        // Admin can reassign if they provide assignedToUserId
+        if (loggedInUser.getRole() == Role.ADMIN && customerRequestDto.getAssignedToUserId() != null) {
+            Users newAssignedUser = userRepository.findById(customerRequestDto.getAssignedToUserId())
+                    .orElseThrow(() -> new RuntimeException("New assigned user not found"));
+            if (newAssignedUser.getRole() != Role.EMPLOYEE) {
+                throw new RuntimeException("Customer can only be assigned to an EMPLOYEE");
+            }
+            customer.setAssignedTo(newAssignedUser);
+        }
+
+        Customers updatedCustomer = customerRepository.save(customer);
+
+        return mapToResponseDto(updatedCustomer);
     }
 
     private CustomerResponseDto mapToResponseDto(Customers customer) {
