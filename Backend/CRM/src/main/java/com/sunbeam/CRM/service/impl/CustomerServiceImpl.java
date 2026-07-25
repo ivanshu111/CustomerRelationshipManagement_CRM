@@ -1,9 +1,11 @@
 package com.sunbeam.CRM.service.impl;
 
+import com.sunbeam.CRM.dto.CustomerRequestDto;
 import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.repository.CustomerRepository;
+import com.sunbeam.CRM.repository.LeadsRepository;
 import com.sunbeam.CRM.repository.UserRepository;
 import com.sunbeam.CRM.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final LeadsRepository leadsRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -75,6 +78,57 @@ public class CustomerServiceImpl implements CustomerService {
                 .map(customer -> mapToResponseDto(customer))
                 .toList();
 
+    }
+
+    @Override
+    @Transactional
+    public CustomerResponseDto addCustomer(CustomerRequestDto customerRequestDto) {
+        //get logged-in user - spring security stores current user info in SecurityContextHolder.
+        //.getName()- returns email/username of logged-in user
+        String email= SecurityContextHolder.getContext().getAuthentication().getName();
+
+        //then by logged-in user email we search user in database, if not found than throw error.
+        Users loggedInUser= userRepository.findByEmail(email)
+                .orElseThrow(()->new RuntimeException("User not found"));
+
+        Users assignedUser;
+
+        //here we check that if logged-in user is admin, if yes then while registering customer admin must provide a EmployeeID, to whom customer is assigned.
+        //if employee not found than logged-in user is assigned to that customer.
+        if(loggedInUser.getRole() == Role.ADMIN){
+            if(customerRequestDto.getAssignedToUserId() != null){
+                assignedUser = userRepository.findById(customerRequestDto.getAssignedToUserId())
+                        .orElseThrow(() -> new RuntimeException("Assigned user not found"));
+
+                //Admin cannot assign customer to any random person, he is only allow to assign to an Employee.
+                if(assignedUser.getRole() != Role.EMPLOYEE){
+                    throw new RuntimeException("Customer can only be assigned to an EMPLOYEE");
+                }
+
+            } else {
+                throw new RuntimeException("Admin must assign customer to an Employee");
+            }
+        }else{
+            assignedUser = loggedInUser;
+        }
+
+        //create customer
+        Customers customer= new Customers();
+        customer.setName(customerRequestDto.getName());
+        customer.setEmail(customerRequestDto.getEmail());
+        customer.setPhone(customerRequestDto.getPhone());
+        customer.setAssignedTo(assignedUser);
+
+        Customers savedCustomer = customerRepository.save(customer);
+
+        // Create initial lead record with status PENDING
+        Leads initialLead = new Leads();
+        initialLead.setCustomer(savedCustomer);
+        initialLead.setEmployee(assignedUser);
+        initialLead.setStatus(LeadStatus.PENDING);
+        leadsRepository.save(initialLead);
+
+        return mapToResponseDto(savedCustomer);
     }
 
     private CustomerResponseDto mapToResponseDto(Customers customer) {
