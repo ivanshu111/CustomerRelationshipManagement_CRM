@@ -93,6 +93,13 @@ public class AdminController {
         return ResponseEntity.ok("Employee unblocked successfully");
     }
 
+    @GetMapping("/employees/blocked")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getBlockedEmployees() {
+        List<EmployeeResponseDto> blocked = adminService.getBlockedEmployees();
+        return ResponseEntity.ok(blocked);
+    }
+
     @GetMapping("/leads/count")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> getLeadsCount(){
