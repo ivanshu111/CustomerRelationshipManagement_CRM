@@ -25,4 +25,6 @@ public interface AdminService {
     void approveAccessRequest(Integer employeeId);
 
     void blockEmployee(Integer employeeId, BlockRequestDto blockRequestDto);
+
+    void unblockEmployee(Integer employeeId);
 }

@@ -165,6 +165,26 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(employee);
     }
 
+    @Override
+    @Transactional
+    public void unblockEmployee(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.BLOCKED) {
+            throw new InvalidEmployeeStateException("Employee is not blocked");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        employee.setBlockedReason(null);
+        employee.setBlockedAt(null);
+        employee.setBlockedUntil(null);
+        employee.setBlockRemovalRequested(false);
+        employee.setBlockRemovalReason(null);
+
+        userRepository.save(employee);
+    }
+
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;
         EmployeeResponseDto dto = modelMapper.map(user, EmployeeResponseDto.class);
