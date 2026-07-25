@@ -33,4 +33,6 @@ public interface AdminService {
     String getBestPerformingEmployee();
 
     void softDeleteEmployee(Integer id);
+
+    List<EmployeeResponseDto> getBlockedEmployees();
 }
