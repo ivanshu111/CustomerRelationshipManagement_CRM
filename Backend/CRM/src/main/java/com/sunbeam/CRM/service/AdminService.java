@@ -2,6 +2,7 @@ package com.sunbeam.CRM.service;
 
 import java.util.List;
 
+import com.sunbeam.CRM.dto.BlockRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
 import com.sunbeam.CRM.dto.InteractionResponseDto;
@@ -22,4 +23,6 @@ public interface AdminService {
     void approveResignation(Integer employeeId);
 
     void approveAccessRequest(Integer employeeId);
+
+    void blockEmployee(Integer employeeId, BlockRequestDto blockRequestDto);
 }
