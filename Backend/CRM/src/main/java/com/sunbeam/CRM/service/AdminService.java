@@ -2,10 +2,8 @@ package com.sunbeam.CRM.service;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.BlockRequestDto;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.dto.*;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,4 +25,6 @@ public interface AdminService {
     void blockEmployee(Integer employeeId, BlockRequestDto blockRequestDto);
 
     void unblockEmployee(Integer employeeId);
+
+    void submitResignation(ResignationRequestDto dto);
 }

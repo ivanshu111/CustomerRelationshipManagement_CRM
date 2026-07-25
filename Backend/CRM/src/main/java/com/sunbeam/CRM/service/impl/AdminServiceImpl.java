@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sunbeam.CRM.dto.BlockRequestDto;
+import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -15,9 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sunbeam.CRM.exception.ResourceNotFoundException;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
 import com.sunbeam.CRM.entities.Customers;
 import com.sunbeam.CRM.entities.EmployeeStatus;
 import com.sunbeam.CRM.entities.Leads;
@@ -181,6 +178,29 @@ public class AdminServiceImpl implements AdminService {
         employee.setBlockedUntil(null);
         employee.setBlockRemovalRequested(false);
         employee.setBlockRemovalReason(null);
+
+        userRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void submitResignation(ResignationRequestDto requestDto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users employee = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with email: " + email));
+
+        if (employee.getRole() != Role.EMPLOYEE) {
+            throw new InvalidEmployeeStateException("Only employees can submit resignation");
+        }
+
+        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED || employee.getEmployeeStatus() == EmployeeStatus.RESIGNED) {
+            throw new InvalidEmployeeStateException("Cannot resign. Current status: " + employee.getEmployeeStatus());
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.PENDING_RESIGNATION);
+        employee.setResignationReason(requestDto.getResignationReason());
+        employee.setLastWorkingDate(requestDto.getLastWorkingDate());
+        employee.setResignationRequestedAt(LocalDateTime.now());
 
         userRepository.save(employee);
     }
