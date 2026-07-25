@@ -2,9 +2,9 @@ package com.sunbeam.CRM.controller;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.service.AdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
 import com.sunbeam.CRM.service.AdminService;
 
 import lombok.RequiredArgsConstructor;
@@ -80,6 +79,13 @@ public class AdminController {
     public ResponseEntity<?> approveAccessRequest(@PathVariable Integer id) {
         adminService.approveAccessRequest(id);
         return ResponseEntity.ok("Access request approved successfully");
+    }
+
+    @PutMapping("/employees/{id}/block")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> blockEmployee(@PathVariable Integer id, @Valid @RequestBody BlockRequestDto blockRequestDto) {
+        adminService.blockEmployee(id, blockRequestDto);
+        return ResponseEntity.ok("Employee blocked successfully");
     }
 
 }

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sunbeam.CRM.dto.BlockRequestDto;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -124,6 +125,8 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(employee);
     }
 
+
+
     @Override
     @Transactional
     public void approveAccessRequest(Integer employeeId) {
@@ -135,6 +138,30 @@ public class AdminServiceImpl implements AdminService {
         }
 
         employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        userRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void blockEmployee(Integer employeeId, BlockRequestDto requestDto) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getRole() == Role.ADMIN) {
+            throw new InvalidEmployeeStateException("Admins cannot be blocked");
+        }
+
+        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED || employee.getEmployeeStatus() == EmployeeStatus.RESIGNED) {
+            throw new InvalidEmployeeStateException("Cannot block an employee who is soft-deleted or resigned");
+        }
+
+        int durationDays = requestDto.getBlockDuration() != null ? requestDto.getBlockDuration() : 7;
+
+        employee.setEmployeeStatus(EmployeeStatus.BLOCKED);
+        employee.setBlockedReason(requestDto.getBlockReason());
+        employee.setBlockedAt(LocalDateTime.now());
+        employee.setBlockedUntil(LocalDateTime.now().plusDays(durationDays));
+
         userRepository.save(employee);
     }
 
