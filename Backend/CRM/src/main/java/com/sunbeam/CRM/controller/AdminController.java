@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.service.AdminService;
+import com.sunbeam.CRM.service.LeadsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final AdminService adminService;
-
+    private final LeadsService leadsService;
 
     @GetMapping("/employees")
     @PreAuthorize("hasRole('ADMIN')")
@@ -95,4 +96,10 @@ public class AdminController {
         return ResponseEntity.ok("Employee unblocked successfully");
     }
 
+    @GetMapping("/leads/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> getLeadsCount(){
+        long count = leadsService.getLeadsCount();
+        return ResponseEntity.ok(count);
+    }
 }
