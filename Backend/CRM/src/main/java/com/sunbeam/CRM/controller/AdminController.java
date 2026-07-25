@@ -102,4 +102,11 @@ public class AdminController {
         long count = leadsService.getLeadsCount();
         return ResponseEntity.ok(count);
     }
+
+    @PutMapping("/employees/{id}/restore")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> restoreEmployee(@PathVariable Integer id) {
+        adminService.restoreEmployee(id);
+        return ResponseEntity.ok("Employee restored successfully");
+    }
 }
