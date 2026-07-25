@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
+import com.sunbeam.CRM.repository.LeadsRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,7 @@ public class AdminServiceImpl implements AdminService {
     private final ModelMapper modelMapper;
     private final CustomerRepository customerRepository;
     private final InteractionRepository interactionRepository;
+    private final LeadsRepository leadsRepository;
 
     @Override
     public List<EmployeeResponseDto> getAllEmployees() {
@@ -218,6 +220,47 @@ public class AdminServiceImpl implements AdminService {
         employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
         employee.setDeletedAt(null);
         employee.setDeletedBy(null);
+
+        userRepository.save(employee);
+    }
+
+    @Override
+    public String getBestPerformingEmployee() {
+        return leadsRepository.findBestPerformingEmployee().stream()
+                .findFirst()
+                .map(user -> user.getName())
+                .orElse("No top performing employee found");
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteEmployee(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getRole() == Role.ADMIN) {
+            throw new InvalidEmployeeStateException("Admins cannot be soft deleted");
+        }
+
+        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED) {
+            throw new InvalidEmployeeStateException("Employee is already soft deleted");
+        }
+
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with email: " + adminEmail));
+
+        // Soft delete
+        employee.setEmployeeStatus(EmployeeStatus.DELETED);
+        employee.setDeletedAt(LocalDateTime.now());
+        employee.setDeletedBy(admin);
+
+        // Reassign all customers to ADMIN
+        List<Customers> customers = customerRepository.findByAssignedTo(employee);
+        for (Customers customer : customers) {
+            customer.setAssignedTo(admin);
+        }
+        customerRepository.saveAll(customers);
 
         userRepository.save(employee);
     }

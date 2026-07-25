@@ -49,4 +49,10 @@ public class CustomerController {
     public ResponseEntity<?> getPendingCustomers(){
         return ResponseEntity.ok(customerService.getPendingCustomers());
     }
+
+    @GetMapping("/not-interested")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> getNotInterestedCustomers(){
+        return ResponseEntity.ok(customerService.getNotInterestedCustomers());
+    }
 }

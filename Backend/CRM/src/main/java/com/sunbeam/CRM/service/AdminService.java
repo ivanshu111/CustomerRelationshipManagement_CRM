@@ -29,4 +29,8 @@ public interface AdminService {
     void submitResignation(ResignationRequestDto dto);
 
     void restoreEmployee(Integer employeeId);
+
+    String getBestPerformingEmployee();
+
+    void softDeleteEmployee(Integer id);
 }
