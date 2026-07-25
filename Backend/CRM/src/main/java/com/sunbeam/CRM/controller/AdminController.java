@@ -88,4 +88,11 @@ public class AdminController {
         return ResponseEntity.ok("Employee blocked successfully");
     }
 
+    @PutMapping("/employees/{id}/unblock")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> unblockEmployee(@PathVariable Integer id) {
+        adminService.unblockEmployee(id);
+        return ResponseEntity.ok("Employee unblocked successfully");
+    }
+
 }
