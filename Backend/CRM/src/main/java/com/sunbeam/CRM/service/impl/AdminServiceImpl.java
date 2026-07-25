@@ -205,6 +205,23 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(employee);
     }
 
+    @Override
+    @Transactional
+    public void restoreEmployee(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.DELETED) {
+            throw new InvalidEmployeeStateException("Employee is not soft deleted");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        employee.setDeletedAt(null);
+        employee.setDeletedBy(null);
+
+        userRepository.save(employee);
+    }
+
     private EmployeeResponseDto mapToDto(Users user) {
         if (user == null) return null;
         EmployeeResponseDto dto = modelMapper.map(user, EmployeeResponseDto.class);
