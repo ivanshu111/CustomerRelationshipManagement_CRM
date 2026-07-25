@@ -81,6 +81,24 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public List<CustomerResponseDto> getPendingCustomers() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Customers> customers;
+        if (loggedInUser.getRole() == Role.ADMIN) {
+            customers = customerRepository.findByLeadStatus(LeadStatus.PENDING);
+        } else {
+            customers = customerRepository.findByAssignedToAndLeadStatus(loggedInUser, LeadStatus.PENDING);
+        }
+
+        return customers.stream()
+                .map(customer -> mapToResponseDto(customer))
+                .toList();
+    }
+
+    @Override
     @Transactional
     public CustomerResponseDto addCustomer(CustomerRequestDto customerRequestDto) {
         //get logged-in user - spring security stores current user info in SecurityContextHolder.
