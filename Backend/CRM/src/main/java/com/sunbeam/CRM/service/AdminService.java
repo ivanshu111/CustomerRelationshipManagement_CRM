@@ -27,10 +27,12 @@ public interface AdminService {
     void unblockEmployee(Integer employeeId);
 
     void submitResignation(ResignationRequestDto dto);
-    
+
     void restoreEmployee(Integer employeeId);
 
     String getBestPerformingEmployee();
 
     void softDeleteEmployee(Integer id);
+
+    double getConversionRate();
 }

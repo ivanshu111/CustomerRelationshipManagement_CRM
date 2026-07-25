@@ -125,5 +125,10 @@ public class AdminController {
         return ResponseEntity.ok("Employee soft deleted successfully");
     }
 
-
+    @GetMapping("/analytics/conversion-rate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Double> getConversionRate(){
+        double conversionRate = adminService.getConversionRate();
+        return ResponseEntity.ok(conversionRate);
+    }
 }

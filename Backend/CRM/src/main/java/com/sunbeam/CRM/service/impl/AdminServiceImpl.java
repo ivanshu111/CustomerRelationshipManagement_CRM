@@ -1,11 +1,14 @@
 package com.sunbeam.CRM.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.sunbeam.CRM.dto.*;
+import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import com.sunbeam.CRM.repository.LeadsRepository;
 import org.modelmapper.ModelMapper;
@@ -16,11 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sunbeam.CRM.exception.ResourceNotFoundException;
-import com.sunbeam.CRM.entities.Customers;
-import com.sunbeam.CRM.entities.EmployeeStatus;
-import com.sunbeam.CRM.entities.Leads;
-import com.sunbeam.CRM.entities.Role;
-import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.repository.CustomerRepository;
 import com.sunbeam.CRM.repository.InteractionRepository;
 import com.sunbeam.CRM.repository.UserRepository;
@@ -263,6 +261,19 @@ public class AdminServiceImpl implements AdminService {
         customerRepository.saveAll(customers);
 
         userRepository.save(employee);
+    }
+
+    @Override
+    public double getConversionRate() {
+        long closedDeals = leadsRepository.countByStatus(LeadStatus.valueOf("CLOSED"));
+        long totalLeads = leadsRepository.count();
+
+        if (totalLeads == 0) return 0.0;
+
+        double rawRate = ((double) closedDeals / totalLeads) * 100;
+        return BigDecimal.valueOf(rawRate)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
     private EmployeeResponseDto mapToDto(Users user) {

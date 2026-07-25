@@ -1,5 +1,6 @@
 package com.sunbeam.CRM.repository;
 
+import com.sunbeam.CRM.entities.LeadStatus;
 import com.sunbeam.CRM.entities.Leads;
 import com.sunbeam.CRM.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,6 @@ public interface LeadsRepository  extends JpaRepository<Leads, Integer> {
 
     @Query("SELECT l.employee FROM Leads l WHERE l.status = com.sunbeam.CRM.entities.LeadStatus.CLOSED GROUP BY l.employee ORDER BY COUNT(l) DESC")
     List<Users> findBestPerformingEmployee();
+
+    long countByStatus(LeadStatus status);
 }
