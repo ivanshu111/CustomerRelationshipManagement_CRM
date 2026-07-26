@@ -1,7 +1,9 @@
 package com.sunbeam.CRM.controller;
 
 import com.sunbeam.CRM.dto.ResignationRequestDto;
+import com.sunbeam.CRM.dto.UpdatePasswordRequestDto;
 import com.sunbeam.CRM.service.AdminService;
+import com.sunbeam.CRM.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/employee")
 @RequiredArgsConstructor
 public class EmployeeController {
 
     private final AdminService adminService;
+    private final AuthService authService;
 
     @PostMapping("/resign")
     @PreAuthorize("hasRole('EMPLOYEE')")

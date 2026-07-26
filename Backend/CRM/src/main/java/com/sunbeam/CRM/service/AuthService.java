@@ -1,5 +1,6 @@
 package com.sunbeam.CRM.service;
 
+import com.sunbeam.CRM.dto.UpdatePasswordRequestDto;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.dto.UserResponseDto;
 
@@ -9,4 +10,6 @@ public interface AuthService {
     UserResponseDto getProfile();
 
     void requestAccess(RegisterRequestDto registerRequestDto);
+
+    void updatePassword(UpdatePasswordRequestDto dto);
 }

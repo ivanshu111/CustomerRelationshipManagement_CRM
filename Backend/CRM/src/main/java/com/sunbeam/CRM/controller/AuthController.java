@@ -1,12 +1,14 @@
 package com.sunbeam.CRM.controller;
 
 
+import com.sunbeam.CRM.dto.UpdatePasswordRequestDto;
 import com.sunbeam.CRM.dto.LoginRequestDto;
 import com.sunbeam.CRM.dto.LoginResponse;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.security.JwtUtils;
 import com.sunbeam.CRM.security.UserDetailsImpl;
 import com.sunbeam.CRM.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,4 +86,6 @@ public class AuthController {
         authService.requestAccess(registerRequestDto);
         return ResponseEntity.ok("Access request submitted successfully");
     }
+
+
 }

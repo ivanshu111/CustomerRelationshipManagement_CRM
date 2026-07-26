@@ -1,5 +1,6 @@
 package com.sunbeam.CRM.service.impl;
 
+import com.sunbeam.CRM.dto.UpdatePasswordRequestDto;
 import com.sunbeam.CRM.exception.UserAlreadyExistsException;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.dto.UserResponseDto;
@@ -65,4 +66,28 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
     }
+
+    @Override
+    public void updatePassword(UpdatePasswordRequestDto dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        if (dto.getNewPassword() == null || dto.getNewPassword().trim().isEmpty()) {
+            throw new RuntimeException("New password cannot be empty");
+        }
+
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new RuntimeException("New password cannot be the same as current password");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+
 }
