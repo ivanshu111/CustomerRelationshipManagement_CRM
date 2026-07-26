@@ -38,4 +38,13 @@ public class EmployeeController {
         adminService.requestUnblock(reason);
         return ResponseEntity.ok("Unblock request submitted successfully");
     }
+
+    @PostMapping("/update-password")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequestDto dto) {
+        authService.updatePassword(dto);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password updated successfully");
+        return ResponseEntity.ok(response);
+    }
 }
