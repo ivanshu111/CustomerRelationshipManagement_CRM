@@ -157,4 +157,11 @@ public class AdminController {
         return ResponseEntity.ok("Employee resignation rejected successfully");
     }
 
+    @GetMapping("/employees/deleted")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getDeletedEmployees() {
+        List<EmployeeResponseDto> deleted = adminService.getDeletedEmployees();
+        return ResponseEntity.ok(deleted);
+    }
+
 }
