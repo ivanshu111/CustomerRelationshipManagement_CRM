@@ -327,4 +327,13 @@ public class AdminServiceImpl implements AdminService {
 
         userRepository.save(employee);
     }
+
+
+    @Override
+    public List<EmployeeResponseDto> getDeletedEmployees() {
+       List<Users> users = userRepository.findByRoleAndEmployeeStatus(Role.EMPLOYEE, EmployeeStatus.DELETED);
+        return users.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
 }
