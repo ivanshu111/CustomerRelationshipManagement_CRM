@@ -5,9 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sunbeam.CRM.dto.*;
-import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
-import com.sunbeam.CRM.repository.LeadsRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,14 +12,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sunbeam.CRM.exception.ResourceNotFoundException;
+import com.sunbeam.CRM.dto.BlockRequestDto;
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.dto.ResignationRequestDto;
 import com.sunbeam.CRM.entities.Customers;
 import com.sunbeam.CRM.entities.EmployeeStatus;
 import com.sunbeam.CRM.entities.Leads;
 import com.sunbeam.CRM.entities.Role;
 import com.sunbeam.CRM.entities.Users;
+import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.repository.CustomerRepository;
 import com.sunbeam.CRM.repository.InteractionRepository;
+import com.sunbeam.CRM.repository.LeadsRepository;
 import com.sunbeam.CRM.repository.UserRepository;
 import com.sunbeam.CRM.service.AdminService;
 
@@ -302,5 +306,25 @@ public class AdminServiceImpl implements AdminService {
             dto.setStatus("PENDING");
         }
         return dto;
+    }
+
+
+    @Override
+    @Transactional
+    public void rejectResignation(Integer employeeId) {
+        Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING_RESIGNATION) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING_RESIGNATION status");
+        }
+
+        // Revert status to ACTIVE and clear resignation fields
+        employee.setEmployeeStatus(EmployeeStatus.ACTIVE);
+        employee.setResignationReason(null);
+        employee.setLastWorkingDate(null);
+        employee.setResignationRequestedAt(null);
+
+        userRepository.save(employee);
     }
 }
