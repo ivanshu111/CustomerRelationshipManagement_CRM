@@ -62,4 +62,11 @@ public class CustomerController {
         CustomerResponseDto customer = customerService.updateCustomer(id, dto);
         return ResponseEntity.ok(customer);
     }
+
+    @GetMapping("/closed")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<?> getClosedCustomers(){
+        List<CustomerResponseDto> customers = customerService.getClosedCustomers();
+        return ResponseEntity.ok(customers);
+    }
 }

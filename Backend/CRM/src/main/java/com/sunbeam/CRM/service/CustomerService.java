@@ -1,10 +1,10 @@
 package com.sunbeam.CRM.service;
 
+import java.util.List;
+
 import com.sunbeam.CRM.dto.CustomerRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.entities.LeadStatus;
-
-import java.util.List;
 
 public interface CustomerService {
     List<CustomerResponseDto> getInterestedCustomers();
@@ -23,4 +23,5 @@ public interface CustomerService {
     CustomerResponseDto updateCustomer(Integer customerId, CustomerRequestDto customerRequestDto);
 
     long getCustomerCount(Integer employeeId);
+    List<CustomerResponseDto> getClosedCustomers();
 }
