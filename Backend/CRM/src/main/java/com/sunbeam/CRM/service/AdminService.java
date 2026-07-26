@@ -43,6 +43,7 @@ public interface AdminService {
     List<EmployeeResponseDto> getDeletedEmployees();
   
      List<EmployeeResponseDto> getPendingAccessRequests();
+     void rejectAccessRequest(Integer employeeId);
      
 
     

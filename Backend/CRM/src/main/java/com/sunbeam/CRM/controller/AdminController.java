@@ -170,4 +170,11 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getPendingAccessRequests());
     }
 
+    @PostMapping("/access-requests/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectAccessRequest(@PathVariable Integer id) {
+        adminService.rejectAccessRequest(id);
+        return ResponseEntity.ok("Access request rejected successfully");
+    }
+
 }

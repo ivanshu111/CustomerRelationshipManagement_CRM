@@ -345,4 +345,26 @@ public class AdminServiceImpl implements AdminService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
+
+
+    @Override
+    public void rejectAccessRequest(Integer employeeId) {
+         Users employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.PENDING) {
+            throw new InvalidEmployeeStateException("Employee is not in PENDING status");
+        }
+
+        employee.setEmployeeStatus(EmployeeStatus.DELETED);
+        employee.setDeletedAt(LocalDateTime.now());
+        
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users admin = userRepository.findByEmail(adminEmail).orElse(null);
+        if (admin != null) {
+            employee.setDeletedBy(admin);
+        }
+
+        userRepository.save(employee);
+    }
 }
