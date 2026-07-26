@@ -367,4 +367,23 @@ public class AdminServiceImpl implements AdminService {
 
         userRepository.save(employee);
     }
+
+
+    @Override
+    @Transactional
+    public void requestUnblock(String reason) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users employee = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with email: " + email));
+
+        if (employee.getEmployeeStatus() != EmployeeStatus.BLOCKED) {
+            throw new InvalidEmployeeStateException("Employee is not currently blocked");
+        }
+
+        employee.setBlockRemovalRequested(true);
+        employee.setBlockRemovalReason(reason);
+        userRepository.save(employee);
+    }
+
+
 }

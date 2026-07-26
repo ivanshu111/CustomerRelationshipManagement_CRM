@@ -44,6 +44,7 @@ public interface AdminService {
   
      List<EmployeeResponseDto> getPendingAccessRequests();
      void rejectAccessRequest(Integer employeeId);
+     void requestUnblock(String reason);
      
 
     

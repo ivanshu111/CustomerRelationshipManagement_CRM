@@ -24,4 +24,12 @@ public class EmployeeController {
         adminService.submitResignation(dto);
         return ResponseEntity.ok("Resignation request submitted successfully");
     }
+
+    @PostMapping("/request-unblock")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<?> requestUnblock(@RequestBody java.util.Map<String, String> body) {
+        String reason = body.get("reason");
+        adminService.requestUnblock(reason);
+        return ResponseEntity.ok("Unblock request submitted successfully");
+    }
 }
