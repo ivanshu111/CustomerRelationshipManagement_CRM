@@ -41,6 +41,9 @@ public interface AdminService {
     List<EmployeeResponseDto> getBlockedEmployees();
     void rejectResignation(Integer employeeId);
     List<EmployeeResponseDto> getDeletedEmployees();
+  
+     List<EmployeeResponseDto> getPendingAccessRequests();
+     
 
     
 }

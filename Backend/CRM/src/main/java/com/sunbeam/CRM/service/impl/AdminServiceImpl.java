@@ -336,4 +336,13 @@ public class AdminServiceImpl implements AdminService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
+
+
+    @Override
+    public List<EmployeeResponseDto> getPendingAccessRequests() {
+       List<Users> users = userRepository.findByRoleAndEmployeeStatus(Role.EMPLOYEE, EmployeeStatus.PENDING);
+        return users.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
 }
