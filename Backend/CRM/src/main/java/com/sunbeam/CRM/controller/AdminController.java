@@ -150,5 +150,11 @@ public class AdminController {
         return ResponseEntity.ok(count);
     }
 
+    @PutMapping("/employees/{id}/reject-resignation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectResignation(@PathVariable Integer id) {
+        adminService.rejectResignation(id);
+        return ResponseEntity.ok("Employee resignation rejected successfully");
+    }
 
 }
