@@ -1,22 +1,28 @@
 package com.sunbeam.CRM.service.impl;
 
-import com.sunbeam.CRM.dto.CustomerRequestDto;
-import com.sunbeam.CRM.exception.ResourceNotFoundException;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.entities.*;
-import com.sunbeam.CRM.repository.CustomerRepository;
-import com.sunbeam.CRM.repository.LeadsRepository;
-import com.sunbeam.CRM.repository.UserRepository;
-import com.sunbeam.CRM.service.CustomerService;
-import lombok.RequiredArgsConstructor;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.sunbeam.CRM.dto.CustomerRequestDto;
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.entities.Customers;
+import com.sunbeam.CRM.entities.LeadStatus;
+import com.sunbeam.CRM.entities.Leads;
+import com.sunbeam.CRM.entities.Role;
+import com.sunbeam.CRM.entities.Users;
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
+import com.sunbeam.CRM.repository.CustomerRepository;
+import com.sunbeam.CRM.repository.LeadsRepository;
+import com.sunbeam.CRM.repository.UserRepository;
+import com.sunbeam.CRM.service.CustomerService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional(readOnly = true)
@@ -277,5 +283,21 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         return responseDto;
+    }
+
+    @Override
+    public List<CustomerResponseDto> getClosedCustomers() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Customers> customers;
+        if (loggedInUser.getRole() == Role.ADMIN) {
+            customers = customerRepository.findByLeadStatus(LeadStatus.CLOSED);
+        } else {
+            customers = customerRepository.findByAssignedToAndLeadStatus(loggedInUser, LeadStatus.CLOSED);
+        }
+
+        return customers.stream().map(customer -> mapToResponseDto(customer)).collect(Collectors.toList());
     }
 }
