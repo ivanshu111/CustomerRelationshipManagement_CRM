@@ -164,4 +164,10 @@ public class AdminController {
         return ResponseEntity.ok(deleted);
     }
 
+    @GetMapping("/access-requests")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPendingAccessRequests() {
+        return ResponseEntity.ok(adminService.getPendingAccessRequests());
+    }
+
 }
