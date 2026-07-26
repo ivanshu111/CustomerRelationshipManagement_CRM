@@ -2,18 +2,29 @@ package com.sunbeam.CRM.controller;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.*;
-import com.sunbeam.CRM.service.AdminService;
-import com.sunbeam.CRM.service.LeadsService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.sunbeam.CRM.dto.BlockRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.service.AdminService;
+import com.sunbeam.CRM.service.LeadsService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -130,6 +141,13 @@ public class AdminController {
     public ResponseEntity<?> softDeleteEmployee(@PathVariable Integer id) {
         adminService.softDeleteEmployee(id);
         return ResponseEntity.ok("Employee soft deleted successfully");
+    }
+
+    @GetMapping("/leads/closed")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> getLeadsCountWithStatusClosed(){
+        long count = leadsService.getLeadsCountWithStatusClosed();
+        return ResponseEntity.ok(count);
     }
 
 
