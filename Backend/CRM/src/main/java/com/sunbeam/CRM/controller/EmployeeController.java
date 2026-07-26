@@ -31,12 +31,11 @@ public class EmployeeController {
         return ResponseEntity.ok("Resignation request submitted successfully");
     }
 
-    @PostMapping("/update-password")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequestDto dto) {
-        authService.updatePassword(dto);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Password updated successfully");
-        return ResponseEntity.ok(response);
+    @PostMapping("/request-unblock")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<?> requestUnblock(@RequestBody java.util.Map<String, String> body) {
+        String reason = body.get("reason");
+        adminService.requestUnblock(reason);
+        return ResponseEntity.ok("Unblock request submitted successfully");
     }
 }
