@@ -2,18 +2,29 @@ package com.sunbeam.CRM.controller;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.*;
-import com.sunbeam.CRM.service.AdminService;
-import com.sunbeam.CRM.service.LeadsService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.sunbeam.CRM.dto.BlockRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.service.AdminService;
+import com.sunbeam.CRM.service.LeadsService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -93,6 +104,13 @@ public class AdminController {
         return ResponseEntity.ok("Employee unblocked successfully");
     }
 
+    @GetMapping("/employees/blocked")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getBlockedEmployees() {
+        List<EmployeeResponseDto> blocked = adminService.getBlockedEmployees();
+        return ResponseEntity.ok(blocked);
+    }
+
     @GetMapping("/leads/count")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> getLeadsCount(){
@@ -123,6 +141,40 @@ public class AdminController {
     public ResponseEntity<?> softDeleteEmployee(@PathVariable Integer id) {
         adminService.softDeleteEmployee(id);
         return ResponseEntity.ok("Employee soft deleted successfully");
+    }
+
+    @GetMapping("/leads/closed")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> getLeadsCountWithStatusClosed(){
+        long count = leadsService.getLeadsCountWithStatusClosed();
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/employees/{id}/reject-resignation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectResignation(@PathVariable Integer id) {
+        adminService.rejectResignation(id);
+        return ResponseEntity.ok("Employee resignation rejected successfully");
+    }
+
+    @GetMapping("/employees/deleted")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getDeletedEmployees() {
+        List<EmployeeResponseDto> deleted = adminService.getDeletedEmployees();
+        return ResponseEntity.ok(deleted);
+    }
+
+    @GetMapping("/access-requests")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPendingAccessRequests() {
+        return ResponseEntity.ok(adminService.getPendingAccessRequests());
+    }
+
+    @PostMapping("/access-requests/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectAccessRequest(@PathVariable Integer id) {
+        adminService.rejectAccessRequest(id);
+        return ResponseEntity.ok("Access request rejected successfully");
     }
 
     @GetMapping("/analytics/conversion-rate")

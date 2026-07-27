@@ -2,10 +2,14 @@ package com.sunbeam.CRM.service;
 
 import java.util.List;
 
-import com.sunbeam.CRM.dto.*;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import com.sunbeam.CRM.dto.BlockRequestDto;
+import com.sunbeam.CRM.dto.CustomerResponseDto;
+import com.sunbeam.CRM.dto.EmployeeResponseDto;
+import com.sunbeam.CRM.dto.InteractionResponseDto;
+import com.sunbeam.CRM.dto.ResignationRequestDto;
 
 public interface AdminService {
     List<EmployeeResponseDto> getAllEmployees();
@@ -33,6 +37,17 @@ public interface AdminService {
     String getBestPerformingEmployee();
 
     void softDeleteEmployee(Integer id);
+
+    List<EmployeeResponseDto> getBlockedEmployees();
+    void rejectResignation(Integer employeeId);
+    List<EmployeeResponseDto> getDeletedEmployees();
+
+     List<EmployeeResponseDto> getPendingAccessRequests();
+     void rejectAccessRequest(Integer employeeId);
+     void requestUnblock(String reason);
+
+
+
 
     double getConversionRate();
 }
