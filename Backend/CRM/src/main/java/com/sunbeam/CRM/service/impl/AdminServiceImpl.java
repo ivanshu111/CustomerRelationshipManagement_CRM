@@ -199,8 +199,8 @@ public class AdminServiceImpl implements AdminService {
             throw new InvalidEmployeeStateException("Only employees can submit resignation");
         }
 
-        if (employee.getEmployeeStatus() == EmployeeStatus.DELETED || employee.getEmployeeStatus() == EmployeeStatus.RESIGNED) {
-            throw new InvalidEmployeeStateException("Cannot resign. Current status: " + employee.getEmployeeStatus());
+         if(employee.getEmployeeStatus()!= EmployeeStatus.ACTIVE){
+            throw new InvalidEmployeeStateException("Cannot resign. Current status must be ACTIVE. Current status: " + employee.getEmployeeStatus());
         }
 
         employee.setEmployeeStatus(EmployeeStatus.PENDING_RESIGNATION);
