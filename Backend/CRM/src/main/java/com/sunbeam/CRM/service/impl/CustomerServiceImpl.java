@@ -234,10 +234,16 @@ public class CustomerServiceImpl implements CustomerService {
                 throw new RuntimeException("Customer can only be assigned to an EMPLOYEE");
             }
             customer.setAssignedTo(newAssignedUser);
+
+            Leads lead = leadsRepository.findByCustomerId(customerId)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            lead.setEmployee(newAssignedUser);
+
+            leadsRepository.save(lead);
         }
 
         Customers updatedCustomer = customerRepository.save(customer);
-
         return mapToResponseDto(updatedCustomer);
     }
 
