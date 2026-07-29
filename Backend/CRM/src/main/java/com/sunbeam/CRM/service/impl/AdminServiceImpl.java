@@ -1,10 +1,16 @@
 package com.sunbeam.CRM.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sunbeam.CRM.dto.*;
+import com.sunbeam.CRM.entities.*;
+import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
+import com.sunbeam.CRM.repository.LeadsRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.dto.BlockRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
@@ -270,6 +277,19 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public double getConversionRate() {
+        long closedDeals = leadsRepository.countByStatus(LeadStatus.valueOf("CLOSED"));
+        long totalLeads = leadsRepository.count();
+
+        if (totalLeads == 0) return 0.0;
+
+        double rawRate = ((double) closedDeals / totalLeads) * 100;
+        return BigDecimal.valueOf(rawRate)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    @Override
     public List<EmployeeResponseDto> getBlockedEmployees() {
         List<Users> users = userRepository.findByRoleAndEmployeeStatus(Role.EMPLOYEE, EmployeeStatus.BLOCKED);
         return users.stream()
@@ -358,7 +378,7 @@ public class AdminServiceImpl implements AdminService {
 
         employee.setEmployeeStatus(EmployeeStatus.DELETED);
         employee.setDeletedAt(LocalDateTime.now());
-        
+
         String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Users admin = userRepository.findByEmail(adminEmail).orElse(null);
         if (admin != null) {

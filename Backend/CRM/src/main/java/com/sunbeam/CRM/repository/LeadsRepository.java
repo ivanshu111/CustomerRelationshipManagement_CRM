@@ -1,5 +1,8 @@
 package com.sunbeam.CRM.repository;
 
+import com.sunbeam.CRM.entities.LeadStatus;
+import com.sunbeam.CRM.entities.Leads;
+import com.sunbeam.CRM.entities.Users;
 import java.util.List;
 import java.util.Optional;
 
