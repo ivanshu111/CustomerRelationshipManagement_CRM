@@ -183,4 +183,5 @@ public class AdminController {
         double conversionRate = adminService.getConversionRate();
         return ResponseEntity.ok(conversionRate);
     }
+
 }
