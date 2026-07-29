@@ -18,6 +18,8 @@ import com.sunbeam.CRM.entities.Users;
 public interface LeadsRepository  extends JpaRepository<Leads, Integer> {
     Optional<Leads> findTopByCustomerIdOrderByIdDesc(Integer customerId);
 
+     Optional<Leads> findByCustomerId(Integer customerId);
+
     @Query("SELECT l.employee FROM Leads l WHERE l.status = com.sunbeam.CRM.entities.LeadStatus.CLOSED GROUP BY l.employee ORDER BY COUNT(l) DESC")
     List<Users> findBestPerformingEmployee();
 
