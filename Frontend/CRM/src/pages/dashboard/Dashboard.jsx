@@ -370,6 +370,11 @@ export const Dashboard = () => {
     }
     };
 
+
+    // M : declaration Part 
+
+    // I : declaration Part
+
   console.log("Current user object in Dashboard:", user);
 
   return (
