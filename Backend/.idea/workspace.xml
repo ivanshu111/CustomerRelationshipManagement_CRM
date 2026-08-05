@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="49c0c7f1-7fdd-4348-807f-d2eb892f9995" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/repository/NotificationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/repository/NotificationRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/NotificationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/CustomerServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/CustomerServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/NotificationServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/NotificationServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/SseNotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/SseNotificationService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

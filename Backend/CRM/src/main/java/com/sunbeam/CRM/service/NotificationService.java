@@ -18,4 +18,6 @@ public interface NotificationService {
     void createNotification(Users oldOwner, String oldOwnerTitle, String oldOwnerMessage, NotificationType notificationType);
 
     void notifyAllAdmins(String title, String message, NotificationType type);
+
+    void deleteNotificationsOlderThanDays(int i);
 }
