@@ -8,4 +8,8 @@ public interface NotificationService {
     List<NotificationResponseDto> getMyNotifications();
 
     long getUnreadCount();
+
+    void markAsRead(Integer notificationId);
+
+    void markAllAsRead();
 }

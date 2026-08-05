@@ -47,4 +47,34 @@ public class NotificationServiceImpl implements NotificationService {
         return notificationRepository.countByRecipientAndIsReadFalse(loggedInUser);
     }
 
+    @Transactional
+    @Override
+    public void markAsRead(Integer notificationId) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Notifications notification = notificationRepository.findByIdAndRecipient(notificationId, loggedInUser)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        notification.setRead(true);
+
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
+    @Override
+    public void markAllAsRead() {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Notifications> notifications = notificationRepository.findByRecipientAndIsReadFalse(loggedInUser);
+        notifications.forEach(notification -> notification.setRead(true));
+
+        notificationRepository.saveAll(notifications);
+    }
 }

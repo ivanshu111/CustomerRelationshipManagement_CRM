@@ -42,4 +42,15 @@ public class NotificationSseController {
         return ResponseEntity.ok(notificationService.getUnreadCount());
     }
 
+    @PutMapping("/{notificationId}/read")
+    public ResponseEntity<String> markAsRead(@PathVariable Integer notificationId) {
+        notificationService.markAsRead(notificationId);
+        return ResponseEntity.ok("Notification marked as read");
+    }
+
+    @PutMapping("/mark-all-read")
+    public ResponseEntity<String> markAllAsRead() {notificationService.markAllAsRead();
+        return ResponseEntity.ok("All notifications marked as read");
+    }
+
 }
