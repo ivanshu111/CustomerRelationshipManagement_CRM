@@ -158,4 +158,29 @@ public class EmailServiceImpl implements EmailService {
             );
         }
     }
+
+    @Override
+    public void sendResignationApprovedEmail(
+            Users employee,
+            LocalDate resignationDate,
+            LocalDate lastWorkingDate
+    ) {
+
+        Context context = new Context();
+
+        context.setVariable("employeeName", employee.getName());
+        context.setVariable("resignationDate", resignationDate);
+        context.setVariable("lastWorkingDate", lastWorkingDate);
+
+        String html = templateEngine.process(
+                "resignation-approved",
+                context
+        );
+
+        sendHtmlEmail(
+                employee.getEmail(),
+                "Resignation Request Approved",
+                html
+        );
+    }
 }

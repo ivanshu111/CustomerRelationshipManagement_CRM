@@ -15,5 +15,6 @@ public interface EmailService {
 
     void sendResignationRejectedEmail(Users employee, LocalDate resignationDate);
 
+     void sendResignationApprovedEmail(Users employee, LocalDate resignationDate, LocalDate lastWorkingDate);
 
 }
