@@ -116,7 +116,28 @@ public class EmailServiceImpl implements EmailService {
     }
 
 
+    @Override
+    public void sendResignationRejectedEmail(
+            Users employee,
+            LocalDate resignationDate
+    ) {
 
+        Context context = new Context();
+
+        context.setVariable("employeeName", employee.getName());
+        context.setVariable("resignationDate", resignationDate);
+
+        String html = templateEngine.process(
+                "resignation-denied",
+                context
+        );
+
+        sendHtmlEmail(
+                employee.getEmail(),
+                "Resignation Request Denied",
+                html
+        );
+    }
 
 
     private void sendHtmlEmail(String to, String subject, String html) {

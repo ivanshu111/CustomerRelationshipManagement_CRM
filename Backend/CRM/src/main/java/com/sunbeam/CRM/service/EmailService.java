@@ -4,6 +4,7 @@ import com.sunbeam.CRM.entities.Customers;
 import com.sunbeam.CRM.entities.Interaction;
 import com.sunbeam.CRM.entities.Users;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -12,7 +13,7 @@ public interface EmailService {
 
     void sendTodayFollowUpReminder(Users employee, List<Interaction> employeeInteractions);
 
-
+    void sendResignationRejectedEmail(Users employee, LocalDate resignationDate);
 
 
 }
