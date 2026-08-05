@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="49c0c7f1-7fdd-4348-807f-d2eb892f9995" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/repository/NotificationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/repository/NotificationRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/NotificationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/NotificationServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/CRM/src/main/java/com/sunbeam/CRM/service/impl/NotificationServiceImpl.java" afterDir="false" />
-    </list>
+    <list default="true" id="49c0c7f1-7fdd-4348-807f-d2eb892f9995" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,7 +13,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="HTML File" />
         <option value="Enum" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -29,7 +26,7 @@
         <entry key="$PROJECT_DIR$/../.." value="feature/frontend/jui" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
@@ -50,11 +47,12 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.CrmApplication.executor": "Run",
+    "DefaultHtmlFileTemplate": "HTML File",
     "JUnit.All in CRM.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/api/manali",
+    "git-widget-placeholder": "feature/frontend/jui",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/DAC PROJECT/CustomerRelationshipManagement_CRM/Backend/CRM"
@@ -62,8 +60,9 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
-      <recent name="com.sunbeam.CRM.service" />
+      <recent name="com.sunbeam.CRM.entities" />
       <recent name="com.sunbeam.CRM.dto" />
+      <recent name="com.sunbeam.CRM.service" />
     </key>
   </component>
   <component name="RunManager" selected="Application.CrmApplication">
