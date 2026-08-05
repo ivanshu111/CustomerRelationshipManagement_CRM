@@ -26,11 +26,6 @@ import com.sunbeam.CRM.dto.CustomerResponseDto;
 import com.sunbeam.CRM.dto.EmployeeResponseDto;
 import com.sunbeam.CRM.dto.InteractionResponseDto;
 import com.sunbeam.CRM.dto.ResignationRequestDto;
-import com.sunbeam.CRM.entities.Customers;
-import com.sunbeam.CRM.entities.EmployeeStatus;
-import com.sunbeam.CRM.entities.Leads;
-import com.sunbeam.CRM.entities.Role;
-import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.repository.CustomerRepository;
@@ -112,6 +107,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void approveResignation(Integer employeeId) {
+
         Users employee = userRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
 
@@ -120,22 +116,21 @@ public class AdminServiceImpl implements AdminService {
         }
 
         String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Users admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found with email: " + adminEmail));
 
-        // Update employee status to RESIGNED
-        employee.setEmployeeStatus(EmployeeStatus.RESIGNED);
+        // Update employee status
+        employee.setEmployeeStatus(EmployeeStatus.NOTICE_PERIOD);
         employee.setResignationApprovedAt(LocalDateTime.now());
         employee.setResignationApprovedBy(admin);
 
-        // Reassign all customers to ADMIN
-        List<Customers> customers = customerRepository.findByAssignedTo(employee);
-        for (Customers customer : customers) {
-            customer.setAssignedTo(admin);
-        }
-        customerRepository.saveAll(customers);
-
         userRepository.save(employee);
+
+        // Send resignation approval email
+        emailService.sendResignationApprovedEmail(employee, employee.getResignationRequestedAt() != null ? employee.getResignationRequestedAt().toLocalDate() : LocalDate.now(), employee.getLastWorkingDate());
+
+       
     }
 
 
