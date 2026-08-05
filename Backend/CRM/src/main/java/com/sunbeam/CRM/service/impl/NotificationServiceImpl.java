@@ -38,4 +38,13 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(toList());
     }
 
+    @Override
+    public long getUnreadCount() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return notificationRepository.countByRecipientAndIsReadFalse(loggedInUser);
+    }
+
 }
