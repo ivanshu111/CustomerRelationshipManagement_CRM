@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.repository.InteractionRepository;
 import com.sunbeam.CRM.service.EmailService;
+import com.sunbeam.CRM.service.NotificationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final ModelMapper modelMapper;
     private final InteractionRepository interactionRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Override
     public List<CustomerResponseDto> getInterestedCustomers() {
@@ -259,7 +261,13 @@ public class CustomerServiceImpl implements CustomerService {
                     updatedCustomer,oldOwner,newAssignedUser
             );
         }
+        String oldOwnerTitle = "Customer Reassigned";
+        String oldOwnerMessage = "Customer '" + customer.getName() + "' has been reassigned to " + newAssignedUser.getName() + ".";
+        String newOwnerTitle = "New Customer Assigned";
+        String newOwnerMessage = "You have been assigned customer '" + customer.getName() + "'.";
 
+        notificationService.createNotification(oldOwner, oldOwnerTitle, oldOwnerMessage, NotificationType.CUSTOMER_REASSIGNED);
+        notificationService.createNotification(newAssignedUser, newOwnerTitle, newOwnerMessage, NotificationType.CUSTOMER_REASSIGNED);
         return mapToResponseDto(updatedCustomer);
     }
 
