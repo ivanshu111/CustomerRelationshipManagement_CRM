@@ -36,5 +36,18 @@ public class SseNotificationService {
         return emitter;
     }
 
+    public void sendNotification(Integer userId, Object notification) {
 
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter == null) {
+            return;
+        }
+
+        try {
+            emitter.send(SseEmitter.event().name("notification").data(notification));
+        } catch (IOException e) {
+            emitters.remove(userId);
+            emitter.completeWithError(e);
+        }
+    }
 }

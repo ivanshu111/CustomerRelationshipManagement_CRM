@@ -1,6 +1,7 @@
 package com.sunbeam.CRM.service.impl;
 
 import com.sunbeam.CRM.dto.NotificationResponseDto;
+import com.sunbeam.CRM.entities.NotificationType;
 import com.sunbeam.CRM.entities.Notifications;
 import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.repository.NotificationRepository;
@@ -12,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -24,6 +26,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final ModelMapper mapper;
+    private final SseNotificationService sseNotificationService;
     @Override
     public List<NotificationResponseDto> getMyNotifications() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -76,5 +79,25 @@ public class NotificationServiceImpl implements NotificationService {
         notifications.forEach(notification -> notification.setRead(true));
 
         notificationRepository.saveAll(notifications);
+    }
+
+    @Transactional
+    @Override
+    public void createNotification(Users recipient,String title, String message, NotificationType type) {
+
+        Notifications notification = new Notifications();
+
+        notification.setRecipient(recipient);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(type);
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+
+        Notifications savedNotification = notificationRepository.save(notification);
+        NotificationResponseDto notificationDto = mapper.map(savedNotification, NotificationResponseDto.class);
+
+        // Send real-time notification
+        sseNotificationService.sendNotification(recipient.getId(), notificationDto);
     }
 }
