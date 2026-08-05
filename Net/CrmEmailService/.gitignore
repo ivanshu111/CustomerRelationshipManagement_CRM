@@ -17,6 +17,7 @@ obj/
 
 
 secrets.json
+appsettings.json
 
 publish/
 artifacts/
