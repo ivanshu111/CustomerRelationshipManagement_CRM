@@ -4,42 +4,103 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9643509-90bb-44c5-8bbf-e879888d4d3f" name="Changes" comment="" />
+    <list default="true" id="49c0c7f1-7fdd-4348-807f-d2eb892f9995" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../.." value="feature/frontend/jui" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 2,
+  &quot;associatedIndex&quot;: 0,
   &quot;fromUser&quot;: false
 }</component>
-  <component name="ProjectId" id="3GoDQIyCzkIIOPT7vCKzwi85qfO" />
+  <component name="ProjectId" id="3GnzUJNYTlNgwi3oZ6NPpfT2bd0" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.CrmApplication.executor": "Run",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "JUnit.All in CRM.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/frontend/manali",
+    "git-widget-placeholder": "feature/frontend/jui",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/New CDAC Project/CustomerRelationshipManagement_CRM/Backend"
+    "last_opened_file_path": "D:/DAC PROJECT/CustomerRelationshipManagement_CRM/Backend/CRM"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.sunbeam.CRM.entities" />
+      <recent name="com.sunbeam.CRM.dto" />
+      <recent name="com.sunbeam.CRM.service" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.CrmApplication">
+    <configuration name="CrmApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.sunbeam.CRM.CrmApplication" />
+      <module name="CRM" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.sunbeam.CRM.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="All in CRM" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="CRM" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.CrmApplication" />
+        <item itemvalue="JUnit.All in CRM" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="b9643509-90bb-44c5-8bbf-e879888d4d3f" name="Changes" comment="" />
-      <created>1784629010357</created>
+      <changelist id="49c0c7f1-7fdd-4348-807f-d2eb892f9995" name="Changes" comment="" />
+      <created>1784622136181</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1784629010357</updated>
+      <updated>1784622136181</updated>
     </task>
     <servers />
   </component>

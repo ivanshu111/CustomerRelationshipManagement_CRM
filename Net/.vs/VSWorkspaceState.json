@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\CrmEmailService",
+    "\\CrmEmailService\\Configuration",
+    "\\CrmEmailService\\DTOs",
+    "\\CrmEmailService\\Properties",
+    "\\CrmEmailService\\Services"
+  ],
+  "SelectedNode": "\\CrmEmailService\\.gitignore",
+  "PreviewInSolutionExplorer": false
+}
