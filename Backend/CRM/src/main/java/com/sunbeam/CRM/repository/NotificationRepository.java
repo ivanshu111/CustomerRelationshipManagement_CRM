@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notifications, Integer> {
     List<Notifications> findByRecipientOrderByCreatedAtDesc(Users recipient);
+
+    long countByRecipientAndIsReadFalse(Users loggedInUser);
 }
