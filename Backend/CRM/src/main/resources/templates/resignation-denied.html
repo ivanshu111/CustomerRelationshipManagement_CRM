@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Resignation Denied</title>
+
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #1f4e79;
+            margin-bottom: 10px;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        .status-box {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fbeaea;
+            border-left: 5px solid #dc3545;
+            border-radius: 4px;
+        }
+
+        .status {
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .details th {
+            background-color: #1f4e79;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .details td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+<div class="container">
+
+
+    <h2>Resignation Request Update</h2>
+
+    <p>
+        Hello <strong th:text="${employeeName}">Employee</strong>,
+    </p>
+
+    <p>
+        We would like to inform you that your resignation request has been reviewed
+        and has been <strong class="status">denied</strong> by the management.
+    </p>
+
+    <div class="status-box">
+        <strong>Resignation Status:</strong>
+        <span class="status">DENIED</span>
+    </div>
+
+    <table class="details">
+        <tr>
+            <th>Employee Name</th>
+            <td th:text="${employeeName}">Employee Name</td>
+        </tr>
+
+        <tr>
+            <th>Resignation Date</th>
+            <td th:text="${resignationDate}">01-Aug-2026</td>
+        </tr>
+
+        <tr>
+            <th>Status</th>
+            <td class="status">DENIED</td>
+        </tr>
+    </table>
+
+    <p style="margin-top:25px;">
+        Your resignation request has not been approved at this time.
+        Please contact your manager or the HR department if you require
+        further clarification regarding this decision.
+    </p>
+
+    <div class="footer">
+        This is an automated notification from the CRM System.<br>
+        Please do not reply to this email.
+    </div>
+
+
+</div>
+
+</body>
+</html>

@@ -74,8 +74,70 @@ public class EmailServiceImpl implements EmailService {
 
     }
 
+    @Override
+    public void sendTodayFollowUpReminder(Users employee, List<Interaction> employeeInteractions) {
+
+//        try {
+
+        Context context = new Context();
+        context.setVariable("employeeName", employee.getName());
+        context.setVariable("followUps", employeeInteractions);
+        context.setVariable("today", LocalDate.now());
+
+        String html = templateEngine.process(
+                "today-followups",
+                context
+        );
+
+//            MimeMessage message = mailSender.createMimeMessage();
+//
+//            MimeMessageHelper helper =
+//                    new MimeMessageHelper(message, true, "UTF-8");
+//
+//            helper.setFrom(fromEmail);
+//            System.out.println(employee.getEmail());
+//            helper.setTo(employee.getEmail());
+//            helper.setSubject("Today's Customer Follow-ups");
+//            helper.setText(html, true);
+//
+//            mailSender.send(message);
+//        }
+//        catch (MessagingException ex) {
+//            throw new EmailSendingException(
+//                    "Unable to send customer reassignment email.",
+//                    ex
+//            );
+//        }
+        sendHtmlEmail(
+                employee.getEmail(),
+                "Today's Customer Follow-ups",
+                html
+        );
+    }
 
 
+    @Override
+    public void sendResignationRejectedEmail(
+            Users employee,
+            LocalDate resignationDate
+    ) {
+
+        Context context = new Context();
+
+        context.setVariable("employeeName", employee.getName());
+        context.setVariable("resignationDate", resignationDate);
+
+        String html = templateEngine.process(
+                "resignation-denied",
+                context
+        );
+
+        sendHtmlEmail(
+                employee.getEmail(),
+                "Resignation Request Denied",
+                html
+        );
+    }
 
 
     private void sendHtmlEmail(String to, String subject, String html) {

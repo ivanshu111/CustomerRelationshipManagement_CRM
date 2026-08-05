@@ -2,6 +2,7 @@ package com.sunbeam.CRM.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -11,6 +12,7 @@ import com.sunbeam.CRM.dto.*;
 import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import com.sunbeam.CRM.repository.LeadsRepository;
+import com.sunbeam.CRM.service.EmailService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,7 @@ public class AdminServiceImpl implements AdminService {
     private final CustomerRepository customerRepository;
     private final InteractionRepository interactionRepository;
     private final LeadsRepository leadsRepository;
+    private final EmailService emailService;
 
     @Override
     public List<EmployeeResponseDto> getAllEmployees() {
@@ -346,6 +349,10 @@ public class AdminServiceImpl implements AdminService {
         employee.setResignationRequestedAt(null);
 
         userRepository.save(employee);
+
+        // Send resignation rejection email
+        LocalDate resignationDate = employee.getResignationRequestedAt() != null ? employee.getResignationRequestedAt().toLocalDate() : LocalDate.now();
+        emailService.sendResignationRejectedEmail(employee, resignationDate);
     }
 
 
