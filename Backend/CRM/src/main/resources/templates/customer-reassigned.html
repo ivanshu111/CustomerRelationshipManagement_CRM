@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Reassigned</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+
+<h2>Customer Reassignment Notification</h2>
+
+<p>Hi <span th:text="${newOwnerName}">Employee</span>,</p>
+
+<p>
+    Customers <b th:text="${customerName}">Customer Name</b> has been reassigned to you
+    <span th:if="${oldOwnerName != null}">
+            from <b th:text="${oldOwnerName}">Old Owner</b>
+        </span>.
+</p>
+
+<p><b>Customer Email:</b> <span th:text="${customerEmail}"></span></p>
+<p><b>Customer Phone:</b> <span th:text="${customerPhone}"></span></p>
+
+<p>Please reach out to the customer at your earliest convenience.</p>
+
+</body>
+</html>

@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sunbeam.CRM.entities.*;
+import com.sunbeam.CRM.repository.InteractionRepository;
+import com.sunbeam.CRM.service.EmailService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -11,11 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sunbeam.CRM.dto.CustomerRequestDto;
 import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.entities.Customers;
-import com.sunbeam.CRM.entities.LeadStatus;
-import com.sunbeam.CRM.entities.Leads;
-import com.sunbeam.CRM.entities.Role;
-import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.exception.ResourceNotFoundException;
 import com.sunbeam.CRM.repository.CustomerRepository;
 import com.sunbeam.CRM.repository.LeadsRepository;
@@ -33,6 +31,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final LeadsRepository leadsRepository;
     private final ModelMapper modelMapper;
+    private final InteractionRepository interactionRepository;
+    private final EmailService emailService;
 
     @Override
     public List<CustomerResponseDto> getInterestedCustomers() {
@@ -226,9 +226,13 @@ public class CustomerServiceImpl implements CustomerService {
         if (customerRequestDto.getEmail() != null) customer.setEmail(customerRequestDto.getEmail());
         if (customerRequestDto.getPhone() != null) customer.setPhone(customerRequestDto.getPhone());
 
+        Users oldOwner = customer.getAssignedTo();
+
+
         // Admin can reassign if they provide assignedToUserId
-        if (loggedInUser.getRole() == Role.ADMIN && customerRequestDto.getAssignedToUserId() != null) {
-            Users newAssignedUser = userRepository.findById(customerRequestDto.getAssignedToUserId())
+        Users newAssignedUser = null;
+        if (loggedInUser.getRole() == Role.ADMIN && customerRequestDto.getAssignedToUserId() != null && !customerRequestDto.getAssignedToUserId().equals(customer.getAssignedTo().getId())) {
+            newAssignedUser = userRepository.findById(customerRequestDto.getAssignedToUserId())
                     .orElseThrow(() -> new RuntimeException("New assigned user not found"));
             if (newAssignedUser.getRole() != Role.EMPLOYEE) {
                 throw new RuntimeException("Customer can only be assigned to an EMPLOYEE");
@@ -236,14 +240,26 @@ public class CustomerServiceImpl implements CustomerService {
             customer.setAssignedTo(newAssignedUser);
 
             Leads lead = leadsRepository.findByCustomerId(customerId)
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+                    .orElseThrow(() -> new RuntimeException("Lead for customer not found"));
+
 
             lead.setEmployee(newAssignedUser);
-
             leadsRepository.save(lead);
+
+            List<Interaction> inter = interactionRepository.findByCustomerId(customerId);
+            for(Interaction in : inter) {
+                in.setEmployee(newAssignedUser);
+                interactionRepository.save(in);
+            }
+        }
+        Customers updatedCustomer = customerRepository.save(customer);
+
+        if(newAssignedUser!=null){
+            emailService.sendCustomerReassignmentEmail(
+                    updatedCustomer,oldOwner,newAssignedUser
+            );
         }
 
-        Customers updatedCustomer = customerRepository.save(customer);
         return mapToResponseDto(updatedCustomer);
     }
 
