@@ -3,6 +3,7 @@ package com.sunbeam.CRM.service.impl;
 import com.sunbeam.CRM.dto.NotificationResponseDto;
 import com.sunbeam.CRM.entities.NotificationType;
 import com.sunbeam.CRM.entities.Notifications;
+import com.sunbeam.CRM.entities.Role;
 import com.sunbeam.CRM.entities.Users;
 import com.sunbeam.CRM.repository.NotificationRepository;
 import com.sunbeam.CRM.repository.UserRepository;
@@ -99,5 +100,16 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Send real-time notification
         sseNotificationService.sendNotification(recipient.getId(), notificationDto);
+    }
+
+    @Transactional
+    @Override
+    public void notifyAllAdmins(String title, String message, NotificationType type) {
+
+        List<Users> admins = userRepository.findByRole(Role.ADMIN);
+        for (Users admin : admins) {
+            System.out.println("Notifying Admin -> ID: " + admin.getId() + ", Name: " + admin.getName());
+            createNotification(admin, title, message, type);
+        }
     }
 }

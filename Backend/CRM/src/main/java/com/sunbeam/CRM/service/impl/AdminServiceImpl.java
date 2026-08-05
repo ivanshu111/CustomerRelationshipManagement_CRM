@@ -13,6 +13,7 @@ import com.sunbeam.CRM.entities.*;
 import com.sunbeam.CRM.exception.InvalidEmployeeStateException;
 import com.sunbeam.CRM.repository.LeadsRepository;
 import com.sunbeam.CRM.service.EmailService;
+import com.sunbeam.CRM.service.NotificationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,7 @@ public class AdminServiceImpl implements AdminService {
     private final InteractionRepository interactionRepository;
     private final LeadsRepository leadsRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Override
     public List<EmployeeResponseDto> getAllEmployees() {
@@ -212,7 +214,6 @@ public class AdminServiceImpl implements AdminService {
         employee.setResignationReason(requestDto.getResignationReason());
         employee.setLastWorkingDate(requestDto.getLastWorkingDate());
         employee.setResignationRequestedAt(LocalDateTime.now());
-
         userRepository.save(employee);
     }
 
@@ -272,6 +273,9 @@ public class AdminServiceImpl implements AdminService {
         customerRepository.saveAll(customers);
 
         userRepository.save(employee);
+
+        notificationService.notifyAllAdmins("Employee Deleted", employee.getName() + " has been deleted.", NotificationType.DELETED);
+
     }
 
     @Override

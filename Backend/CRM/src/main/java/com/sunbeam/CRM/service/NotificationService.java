@@ -16,4 +16,6 @@ public interface NotificationService {
     void markAllAsRead();
 
     void createNotification(Users oldOwner, String oldOwnerTitle, String oldOwnerMessage, NotificationType notificationType);
+
+    void notifyAllAdmins(String title, String message, NotificationType type);
 }
