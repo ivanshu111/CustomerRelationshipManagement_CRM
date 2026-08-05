@@ -112,4 +112,13 @@ public class NotificationServiceImpl implements NotificationService {
             createNotification(admin, title, message, type);
         }
     }
+
+    @Override
+    @Transactional
+    public void deleteNotificationsOlderThanDays(int days) {
+
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
+
+        notificationRepository.deleteByCreatedAtBefore(cutoff);
+    }
 }
