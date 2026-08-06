@@ -6,5 +6,6 @@ public enum EmployeeStatus {
     PENDING_RESIGNATION,
     RESIGNED,
     BLOCKED,
-    DELETED
+    DELETED,
+    NOTICE_PERIOD
 }
