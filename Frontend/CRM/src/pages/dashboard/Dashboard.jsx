@@ -1,13 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  getAllApplicants,
-  getApplicantById,
-  getApplicantEvaluation,
-  acceptApplicant,
-  rejectApplicant,
-} from "../../api/recruitmentApi";  
 import { 
   getAllApplicants, 
   getApplicantById, 
@@ -48,7 +41,8 @@ import Modal from "../../components/Modal";
 import { RegisterForm } from "../auth/RegisterForm";
 import { getProfile } from "../../api/authApi";
 import { toast } from "react-hot-toast";
-import { Dashboard } from "./Dashboard";
+import { Dashboard } from './Dashboard';
+
 
 export const Dashboard = () => {
   const { user, login, logout, loading } = useContext(AuthContext);
@@ -74,29 +68,11 @@ export const Dashboard = () => {
   const [pendingAccessRequests, setPendingAccessRequests] = useState([]);
   const [employeeSubTab, setEmployeeSubTab] = useState("directory");
   const [isResignModalOpen, setIsResignModalOpen] = useState(false);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
-    useState(false);
-
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   
   // Block removal form states
   const [unblockReason, setUnblockReason] = useState("");
   const [isSubmittingUnblock, setIsSubmittingUnblock] = useState(false);
-
-  const pendingBlockRemovals = blockedEmployees.filter(
-    (emp) => emp.blockRemovalRequested,
-  );
-
-  // Customer pagination and search states
-
-  const [customerPage, setCustomerPage] = useState(0);
-  const [customerTotalPages, setCustomerTotalPages] = useState(0);
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [employeeSearch, setEmployeeSearch] = useState("");
-
-  const [employeeConversionRate, setEmployeeConversionRate] = useState(0);
-
-  const [employeeConversionRate, setEmployeeConversionRate] = useState(0);
 
   const pendingBlockRemovals = blockedEmployees.filter((emp) => emp.blockRemovalRequested);
 
@@ -128,46 +104,6 @@ export const Dashboard = () => {
     "#82ca9d",
   ];
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user) return;
-
-      try {
-        const response = await getMyNotifications();
-
-        setNotifications(response.data);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
-    };
-
-    fetchNotifications();
-  }, [user]);
-
-  useEffect(() => {
-    const handleNewNotification = (event) => {
-      const newNotification = event.detail;
-
-      console.log("New notification received in Dashboard:", newNotification);
-
-      // Add new notification to the top
-      setNotifications((prevNotifications) => [
-        newNotification,
-        ...prevNotifications,
-      ]);
-
-      // Increase unread count
-      setUnreadCount((prevCount) => prevCount + 1);
-    };
-
-    window.addEventListener("new-notification", handleNewNotification);
-
-    return () => {
-      window.removeEventListener("new-notification", handleNewNotification);
-    };
-  }, []);
-
-  const fetchData = () => {
 
     
         
@@ -247,7 +183,6 @@ export const Dashboard = () => {
               bestEmployee: best.data,
             });
 
-            console.log("best employee : ", best.data);
             console.log("best employee : ",best.data);
 
 
@@ -290,7 +225,6 @@ export const Dashboard = () => {
         getPendingAccessRequests()
           .then((res) => setPendingAccessRequests(res.data))
           .catch((err) => console.error(err));
-      } else if (user.role === "EMPLOYEE") {
         } else if (user.role === "EMPLOYEE") {
         // Fetch Employee data
         Promise.all([
@@ -313,8 +247,6 @@ export const Dashboard = () => {
           })
           .catch((err) => console.error("Error fetching employee data:", err));
 
-        // Fetch logged-in employee's conversion rate
-        getEmployeeConversionRate(user.id)
           // Fetch logged-in employee's conversion rate
           getEmployeeConversionRate(user.id)
           .then((res) => {
@@ -323,192 +255,9 @@ export const Dashboard = () => {
           .catch((err) => {
             console.error("Error fetching employee conversion rate:", err);
           });
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!user) {
-    navigate("/login");
-    return null;
-  }
-
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await markNotificationAsRead(notificationId);
-
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) =>
-          notification.id === notificationId
-            ? {
-                ...notification,
-                read: true,
-              }
-            : notification,
-        ),
-      );
-
-      setUnreadCount((prevCount) => Math.max(prevCount - 1, 0));
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-    }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllNotificationsAsRead();
-
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) => ({
-          ...notification,
-          read: true,
-        })),
-      );
-
-      setUnreadCount(0);
-    } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const handleAcceptApplicant = async (applicantId) => {
-    try {
-      await acceptApplicant(applicantId);
-
-      // Update the applicant status in the UI
-      setApplicants((prevApplicants) =>
-        prevApplicants.map((applicant) =>
-          applicant.id === applicantId
-            ? { ...applicant, status: "ACCEPTED" }
-            : applicant,
-        ),
-      );
-    } catch (error) {
-      console.error("Failed to accept applicant:", error);
-      alert("Failed to accept applicant");
-    }
-  };
-
-  const handleRejectApplicant = async (applicantId) => {
-    try {
-      await rejectApplicant(applicantId);
-
-      // Update the applicant status in the UI
-      setApplicants((prevApplicants) =>
-        prevApplicants.map((applicant) =>
-          applicant.id === applicantId
-            ? { ...applicant, status: "REJECTED" }
-            : applicant,
-        ),
-      );
-    } catch (error) {
-      console.error("Failed to reject applicant:", error);
-      alert("Failed to reject applicant");
-    }
-  };
-
-  const handleRegisterSuccess = () => {
-    setIsRegisterModalOpen(false);
-    fetchData();
-  };
-
-  const handleStarEmployeeClick = () => {
-    if (stats.bestEmployee.id) {
-      handleEmployeeClick(stats.bestEmployee.id);
-    }
-  };
-
-  const handleAddCustomerSuccess = () => {
-    setIsAddCustomerModalOpen(false);
-    fetchData();
-  };
-
-  const handleRequestUnblock = async (e) => {
-    e.preventDefault();
-    if (!unblockReason.trim()) {
-      toast.error("Please enter a reason for your request");
-      return;
-    }
-
-    setIsSubmittingUnblock(true);
-    try {
-      await requestUnblock(unblockReason);
-      toast.success("Block removal request submitted successfully!");
-      setUnblockReason("");
-      getProfile()
-        .then((response) => {
-          login(response.data);
-        })
-        .catch((err) => console.error("Error refreshing profile:", err));
-    } catch (err) {
-      console.error("Failed to submit unblock request:", err);
-      toast.error(err.response?.data?.message || "Failed to submit request.");
-    } finally {
-      setIsSubmittingUnblock(false);
-    }
-  };
-
-  const handleApproveAccess = async (id) => {
-    if (
-      !window.confirm("Are you sure you want to approve this access request?")
-    )
-      return;
-    try {
-      await approveAccessRequest(id);
-      toast.success("Access request approved successfully!");
-      fetchData();
-    } catch (err) {
-      console.error("Failed to approve access:", err);
-      toast.error(
-        err.response?.data?.message || "Failed to approve access request.",
-      );
-    }
-  };
-
-  const handleRejectAccess = async (id) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to reject and delete this access request?",
-      )
-    )
-      return;
-    try {
-      await rejectAccessRequest(id);
-      toast.success("Access request rejected.");
-      fetchData();
-    } catch (err) {
-      console.error("Failed to reject access:", err);
-      toast.error(
-        err.response?.data?.message || "Failed to reject access request.",
-      );
-    }
-  };
-
-  const handleEmployeeClick = (id) => {
-    setSelectedEmployeeId(id);
-    setIsDetailsModalOpen(true);
-  };
-
-  const handleEmployeeClick = (id) => {
-    setSelectedEmployeeId(id);
-    setIsDetailsModalOpen(true);
-  };
+        }
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -526,10 +275,6 @@ export const Dashboard = () => {
         navigate("/login");
         return null;
     }
-
-  // I : declaration Part
-
-
 
 
     const handleMarkAsRead = async (notificationId) => {
@@ -708,7 +453,6 @@ export const Dashboard = () => {
   console.log("Current user object in Dashboard:", user);
 
   return (
-
     <div className="min-h-screen bg-slate-50/60">
       <nav className="bg-slate-900 border-b border-slate-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1317,47 +1061,18 @@ export const Dashboard = () => {
                   </div>
                 </div>
               )}
-    
+
+
               {activeTab === "employees" && (
                 <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">
-                        Employee Management
-                      </h3>
-                      <p className="text-xs text-gray-500 font-medium mt-0.5">
-                        Track status, manage resignations, blockings, and
-                        archiving.
-                      </p>
                       <h3 className="text-lg font-bold text-gray-900">Employee Management</h3>
                       <p className="text-xs text-gray-500 font-medium mt-0.5">Track status, manage resignations, blockings, and archiving.</p>
                     </div>
                     <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full xl:w-auto items-start sm:items-center">
                       <div className="flex flex-wrap gap-2">
                         {[
-                          {
-                            id: "directory",
-                            label: "Directory",
-                            count: employees.length,
-                          },
-                          {
-                            id: "resignations",
-                            label: "Resignations",
-                            count: resignationRequests.length,
-                            badgeColor: "bg-amber-100 text-amber-800",
-                          },
-                          {
-                            id: "blocked",
-                            label: "Blocked",
-                            count: blockedEmployees.length,
-                            badgeColor: "bg-red-100 text-red-800",
-                          },
-                          {
-                            id: "deleted",
-                            label: "Archived (Soft Deleted)",
-                            count: deletedEmployees.length,
-                            badgeColor: "bg-rose-100 text-rose-800",
-                          },
                           { id: "directory", label: "Directory", count: employees.length },
                           { id: "resignations", label: "Resignations", count: resignationRequests.length, badgeColor: "bg-amber-100 text-amber-800" },
                           { id: "blocked", label: "Blocked", count: blockedEmployees.length, badgeColor: "bg-red-100 text-red-800" },
@@ -1373,14 +1088,6 @@ export const Dashboard = () => {
                             }`}
                           >
                             {subTab.label}
-                            <span
-                              className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                                employeeSubTab === subTab.id
-                                  ? "bg-white/20 text-white"
-                                  : subTab.badgeColor ||
-                                    "bg-gray-100 text-gray-600"
-                              }`}
-                            >
                             <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
                               employeeSubTab === subTab.id ? "bg-white/20 text-white" : subTab.badgeColor || "bg-gray-100 text-gray-600"
                             }`}>
@@ -1392,23 +1099,6 @@ export const Dashboard = () => {
 
                       <div className="relative w-full sm:w-64">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
-                        </span>
-                        <input
-                          type="text"
-                          placeholder="Search employees..."
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -1421,22 +1111,6 @@ export const Dashboard = () => {
                           className="block w-full pl-9 pr-8 py-1.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-xs transition-all shadow-sm"
                         />
                         {employeeSearch && (
-                          <button
-                            onClick={() => setEmployeeSearch("")}
-                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
-                          >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
                           <button 
                             onClick={() => setEmployeeSearch("")}
                             className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
@@ -1455,21 +1129,6 @@ export const Dashboard = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-white">
                           <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Employee
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Email
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Role
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Status
-                            </th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Action
-                            </th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
@@ -1480,13 +1139,6 @@ export const Dashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-100">
                           {filteredEmployees.length === 0 ? (
                             <tr>
-                              <td
-                                colSpan={5}
-                                className="px-6 py-10 text-center text-sm text-gray-500 italic"
-                              >
-                                {employeeSearch
-                                  ? "No employees match your search."
-                                  : "No employees found."}
                               <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
                                 {employeeSearch ? "No employees match your search." : "No employees found."}
                               </td>
@@ -1506,22 +1158,6 @@ export const Dashboard = () => {
                                       </div>
                                     </div>
                                     <div className="ml-4">
-                                      <div className="text-sm font-semibold text-gray-900">
-                                        {emp.name}
-                                      </div>
-                                      <div className="text-xs text-gray-500 font-medium">
-                                        Emp ID: #{emp.id}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                  {emp.email}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span
-                                    className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${emp.role === "ADMIN" ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"}`}
-                                  >
                                       <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
                                       <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
                                     </div>
@@ -1534,18 +1170,6 @@ export const Dashboard = () => {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span
-                                    className={`px-2.5 py-0.5 inline-flex text-xs font-bold rounded-full border ${
-                                      emp.employeeStatus === "ACTIVE"
-                                        ? "bg-green-50 text-green-700 border-green-200"
-                                        : emp.employeeStatus ===
-                                            "PENDING_RESIGNATION"
-                                          ? "bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
-                                          : emp.employeeStatus === "BLOCKED"
-                                            ? "bg-red-50 text-red-700 border-red-200"
-                                            : "bg-gray-50 text-gray-700 border-gray-200"
-                                    }`}
-                                  >
                                   <span className={`px-2.5 py-0.5 inline-flex text-xs font-bold rounded-full border ${
                                     emp.employeeStatus === 'ACTIVE' 
                                       ? 'bg-green-50 text-green-700 border-green-200' 
@@ -1559,9 +1183,6 @@ export const Dashboard = () => {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                  <button className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold">
-                                    View Details
-                                  </button>
                                   <button className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold">View Details</button>
                                 </td>
                               </tr>
@@ -1577,21 +1198,6 @@ export const Dashboard = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-white">
                           <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Employee
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Reason
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Last Working Date
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Requested At
-                            </th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Action
-                            </th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Reason</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Last Working Date</th>
@@ -1602,13 +1208,6 @@ export const Dashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-100">
                           {filteredResignations.length === 0 ? (
                             <tr>
-                              <td
-                                colSpan={5}
-                                className="px-6 py-10 text-center text-sm text-gray-500 italic"
-                              >
-                                {employeeSearch
-                                  ? "No resignation requests match your search."
-                                  : "No pending resignation requests."}
                               <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
                                 {employeeSearch ? "No resignation requests match your search." : "No pending resignation requests."}
                               </td>
@@ -1628,12 +1227,6 @@ export const Dashboard = () => {
                                       </div>
                                     </div>
                                     <div className="ml-4">
-                                      <div className="text-sm font-semibold text-gray-900">
-                                        {emp.name}
-                                      </div>
-                                      <div className="text-xs text-gray-500 font-medium">
-                                        Emp ID: #{emp.id}
-                                      </div>
                                       <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
                                       <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
                                     </div>
@@ -1643,18 +1236,6 @@ export const Dashboard = () => {
                                   {emp.resignationReason}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
-                                  {emp.lastWorkingDate
-                                    ? new Date(
-                                        emp.lastWorkingDate,
-                                      ).toLocaleDateString()
-                                    : "N/A"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
-                                  {emp.resignationRequestedAt
-                                    ? new Date(
-                                        emp.resignationRequestedAt,
-                                      ).toLocaleString()
-                                    : "N/A"}
                                   {emp.lastWorkingDate ? new Date(emp.lastWorkingDate).toLocaleDateString() : "N/A"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
@@ -1694,21 +1275,6 @@ export const Dashboard = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-white">
                           <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Employee
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Block Reason
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Blocked At
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Blocked Until
-                            </th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Action
-                            </th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Block Reason</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Blocked At</th>
@@ -1719,13 +1285,6 @@ export const Dashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-100">
                           {filteredBlocked.length === 0 ? (
                             <tr>
-                              <td
-                                colSpan={5}
-                                className="px-6 py-10 text-center text-sm text-gray-500 italic"
-                              >
-                                {employeeSearch
-                                  ? "No blocked employees match your search."
-                                  : "No blocked employees."}
                               <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
                                 {employeeSearch ? "No blocked employees match your search." : "No blocked employees."}
                               </td>
@@ -1748,14 +1307,6 @@ export const Dashboard = () => {
                                       <div className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                                         {emp.name}
                                         {emp.blockRemovalRequested && (
-                                          <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-amber-200 animate-pulse">
-                                            REMOVAL REQUESTED
-                                          </span>
-                                        )}
-                                      </div>
-                                      <div className="text-xs text-gray-500 font-medium">
-                                        Emp ID: #{emp.id}
-                                      </div>
                                           <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-amber-200 animate-pulse">REMOVAL REQUESTED</span>
                                         )}
                                       </div>
@@ -1767,16 +1318,6 @@ export const Dashboard = () => {
                                   {emp.blockedReason}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
-                                  {emp.blockedAt
-                                    ? new Date(emp.blockedAt).toLocaleString()
-                                    : "N/A"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">
-                                  {emp.blockedUntil
-                                    ? new Date(
-                                        emp.blockedUntil,
-                                      ).toLocaleString()
-                                    : "N/A"}
                                   {emp.blockedAt ? new Date(emp.blockedAt).toLocaleString() : "N/A"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">
@@ -1806,21 +1347,6 @@ export const Dashboard = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-white">
                           <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Employee
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Email
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Deleted At
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Deleted By
-                            </th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                              Action
-                            </th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Deleted At</th>
@@ -1831,13 +1357,6 @@ export const Dashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-100">
                           {filteredDeleted.length === 0 ? (
                             <tr>
-                              <td
-                                colSpan={5}
-                                className="px-6 py-10 text-center text-sm text-gray-500 italic"
-                              >
-                                {employeeSearch
-                                  ? "No archived employees match your search."
-                                  : "No archived employees."}
                               <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
                                 {employeeSearch ? "No archived employees match your search." : "No archived employees."}
                               </td>
@@ -1857,22 +1376,6 @@ export const Dashboard = () => {
                                       </div>
                                     </div>
                                     <div className="ml-4">
-                                      <div className="text-sm font-semibold text-gray-900">
-                                        {emp.name}
-                                      </div>
-                                      <div className="text-xs text-gray-500 font-medium">
-                                        Emp ID: #{emp.id}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                  {emp.email}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                                  {emp.deletedAt
-                                    ? new Date(emp.deletedAt).toLocaleString()
-                                    : "N/A"}
                                       <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
                                       <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
                                     </div>
@@ -1903,10 +1406,6 @@ export const Dashboard = () => {
                       </table>
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* I : Customer Tab   */}
 
                 
                 </div>
@@ -1920,41 +1419,6 @@ export const Dashboard = () => {
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-500 to-rose-600"></div>
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center border-2 border-red-100 shadow-sm animate-bounce">
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Account Temporarily Blocked
-                  </h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1">
-                    You are restricted from performing any customer management
-                    activities.
-                  </p>
-                </div>
-
-                <div className="w-full bg-slate-50 border border-slate-200/60 p-4 rounded-xl text-left text-sm space-y-2">
-                  <p className="text-gray-700">
-                    <strong>Block Reason:</strong>{" "}
-                    {user.blockedReason || "No reason specified."}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Blocked Until:</strong>{" "}
-                    {user.blockedUntil
-                      ? new Date(user.blockedUntil).toLocaleString()
-                      : "Indefinitely"}
-                  </p>
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
@@ -1975,22 +1439,6 @@ export const Dashboard = () => {
                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                       Removal Request Submitted
                     </p>
-                    <p className="text-gray-700 font-medium">
-                      <strong>Your Reason:</strong> {user.blockRemovalReason}
-                    </p>
-                    <p className="text-xs text-amber-600 font-semibold mt-2">
-                      Please wait for an administrator to review your request.
-                    </p>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={handleRequestUnblock}
-                    className="w-full space-y-3"
-                  >
-                    <div className="text-left">
-                      <label className="block text-xs font-bold text-gray-600 mb-1 font-semibold">
-                        Request Removal Reason
-                      </label>
                     <p className="text-gray-700 font-medium"><strong>Your Reason:</strong> {user.blockRemovalReason}</p>
                     <p className="text-xs text-amber-600 font-semibold mt-2">Please wait for an administrator to review your request.</p>
                   </div>
@@ -2012,9 +1460,6 @@ export const Dashboard = () => {
                       disabled={isSubmittingUnblock}
                       className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm py-2 px-4 rounded-xl transition-all shadow disabled:opacity-50 flex justify-center items-center cursor-pointer font-medium"
                     >
-                      {isSubmittingUnblock
-                        ? "Submitting..."
-                        : "Request Removal of Block"}
                       {isSubmittingUnblock ? "Submitting..." : "Request Removal of Block"}
                     </button>
                   </form>
@@ -2053,12 +1498,6 @@ export const Dashboard = () => {
               .then((response) => {
                 login(response.data);
               })
-              .catch((err) =>
-                console.error(
-                  "Error refreshing profile after resignation:",
-                  err,
-                ),
-              );
               .catch((err) => console.error("Error refreshing profile after resignation:", err));
             fetchData();
           }}
@@ -2066,7 +1505,6 @@ export const Dashboard = () => {
         />
       </Modal>
 
-      <Modal
             <Modal
         isOpen={isAddCustomerModalOpen}
         onClose={() => setIsAddCustomerModalOpen(false)}
@@ -2085,9 +1523,6 @@ export const Dashboard = () => {
       >
         <EmployeeDetails employeeId={selectedEmployeeId} onUpdate={fetchData} />
       </Modal>
-    </div>
-  );
-};
 
       
 
