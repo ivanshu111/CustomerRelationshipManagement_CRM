@@ -5,6 +5,7 @@ import com.sunbeam.CRM.entities.Role;
 import com.sunbeam.CRM.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,9 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
     List<Users> findByRoleAndEmployeeStatusNot(Role role, EmployeeStatus employeeStatus);
 
     List<Users> findByRoleAndEmployeeStatus(Role role, EmployeeStatus employeeStatus);
+
+    List<Users> findByEmployeeStatusAndLastWorkingDateLessThanEqual(EmployeeStatus status, LocalDate resignationDate);
+
 
     List<Users> findByRole(Role role);
 }
