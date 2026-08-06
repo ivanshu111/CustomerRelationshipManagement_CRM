@@ -132,6 +132,8 @@ public class AdminServiceImpl implements AdminService {
         // Send resignation approval email
         emailService.sendResignationApprovedEmail(employee, employee.getResignationRequestedAt() != null ? employee.getResignationRequestedAt().toLocalDate() : LocalDate.now(), employee.getLastWorkingDate());
 
+        notificationService.notifyAllAdmins("Resignation Approved", employee.getName() + "'s resignation has been approved by " + admin.getName() + ".", NotificationType.RESIGNATION_APPROVED);
+
        
     }
 
@@ -215,6 +217,8 @@ public class AdminServiceImpl implements AdminService {
         employee.setLastWorkingDate(requestDto.getLastWorkingDate());
         employee.setResignationRequestedAt(LocalDateTime.now());
         userRepository.save(employee);
+
+        notificationService.notifyAllAdmins("Resignation Request", employee.getName() + " has requested resignation.", NotificationType.RESIGNATION_PENDING);
     }
 
     @Override
