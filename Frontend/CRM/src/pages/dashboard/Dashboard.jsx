@@ -7,6 +7,7 @@ import {
   getApplicantEvaluation,
   acceptApplicant,
   rejectApplicant,
+} from "../../api/recruitmentApi";  
 import { 
   getAllApplicants, 
   getApplicantById, 
@@ -110,10 +111,6 @@ export const Dashboard = () => {
     closedLeads: 0,
     conversionRate: 0,
     bestEmployee: {
-      id: null,
-      name: "N/A",
-      conversionRate: 0,
-    },
     id: null,
     name: "N/A",
     conversionRate: 0,
@@ -513,11 +510,6 @@ export const Dashboard = () => {
     setIsDetailsModalOpen(true);
   };
 
-  // I : declaration Part
-        }
-        }
-    };
-
     useEffect(() => {
         fetchData();
     }, [user]);
@@ -534,6 +526,10 @@ export const Dashboard = () => {
         navigate("/login");
         return null;
     }
+
+  // I : declaration Part
+
+
 
 
     const handleMarkAsRead = async (notificationId) => {
@@ -712,18 +708,12 @@ export const Dashboard = () => {
   console.log("Current user object in Dashboard:", user);
 
   return (
+
     <div className="min-h-screen bg-slate-50/60">
       <nav className="bg-slate-900 border-b border-slate-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-1">
-              <span className="bg-indigo-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black tracking-tight shadow-md">
-                CRM
-              </span>
-              <span className="text-sm font-bold text-white tracking-tight ml-1">
-                Enterprise Portal
-              </span>
-
               <span className="bg-indigo-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black tracking-tight shadow-md">CRM</span>
               <span className="text-sm font-bold text-white tracking-tight ml-1">Enterprise Portal</span>
               
@@ -742,15 +732,6 @@ export const Dashboard = () => {
                 >
                   Add Customer
                 </button>
-                {user.role === "EMPLOYEE" &&
-                  user.employeeStatus === "ACTIVE" && (
-                    <button
-                      onClick={() => setIsResignModalOpen(true)}
-                      className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-all py-1.5 px-3 rounded-lg hover:bg-amber-950/20 cursor-pointer"
-                    >
-                      Request Resignation
-                    </button>
-                  )}
                 {user.role === "EMPLOYEE" && user.employeeStatus === "ACTIVE" && (
                   <button
                     onClick={() => setIsResignModalOpen(true)}
@@ -768,116 +749,6 @@ export const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="relative">
-                {/* Notification Bell */}
-                <button
-                  onClick={() => setShowNotifications((prev) => !prev)}
-                  className="relative p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-
-                  {/* Unread Count Badge */}
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full">
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Notification Dropdown */}
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-96 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">
-                          Notifications
-                        </h3>
-
-                        {unreadCount > 0 && (
-                          <p className="text-xs text-slate-500 mt-1">
-                            {unreadCount} unread
-                          </p>
-                        )}
-                      </div>
-
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={handleMarkAllAsRead}
-                          className="text-xs text-indigo-600 font-semibold hover:text-indigo-800"
-                        >
-                          Mark all as read
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Notification List */}
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="p-6 text-center">
-                          <p className="text-sm text-slate-500">
-                            No notifications
-                          </p>
-                        </div>
-                      ) : (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.id}
-                            onClick={() => {
-                              if (!notification.read) {
-                                handleMarkAsRead(notification.id);
-                              }
-                            }}
-                            className={`px-4 py-3 border-b border-slate-100 cursor-pointer transition-colors ${
-                              notification.read
-                                ? "bg-white hover:bg-slate-50"
-                                : "bg-indigo-50 hover:bg-indigo-100"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="text-sm font-semibold text-slate-800">
-                                    {notification.title}
-                                  </h4>
-
-                                  {!notification.read && (
-                                    <span className="w-2 h-2 bg-indigo-600 rounded-full"></span>
-                                  )}
-                                </div>
-
-                                <p className="text-xs text-slate-600 mt-1">
-                                  {notification.message}
-                                </p>
-
-                                {notification.createdAt && (
-                                  <p className="text-[10px] text-slate-400 mt-2">
-                                    {new Date(
-                                      notification.createdAt,
-                                    ).toLocaleString()}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
 
             <div className="relative">
               {/* Notification Bell */}
@@ -1018,7 +889,6 @@ export const Dashboard = () => {
               >
                 Logout
               </button>
-            </div>
 
             </div>
 
@@ -1142,42 +1012,6 @@ export const Dashboard = () => {
                     <div className="bg-white border-l-4 border-amber-500 border border-y-slate-200/60 border-r-slate-200/60 rounded-xl p-5 shadow-sm">
                       <div className="flex items-start gap-4">
                         <div className="h-9 w-9 bg-amber-50 border border-amber-100 text-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-bold text-slate-800">
-                            Block Removal Requests Pending Review
-                          </h4>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            The following blocked employees have requested
-                            account reactivation:
-                          </p>
-                          <div className="mt-3 space-y-2">
-                            {pendingBlockRemovals.map((emp) => (
-                              <div
-                                key={emp.id}
-                                className="flex items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-lg hover:bg-slate-100/50 transition-all"
-                              >
-                                <div className="text-xs">
-                                  <span className="font-bold text-slate-700">
-                                    {emp.name}
-                                  </span>
-                                  <span className="text-slate-300 mx-2">|</span>
-                                  <span className="text-slate-500 font-medium italic">
-                                    "{emp.blockRemovalReason}"
-                                  </span>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
@@ -1211,42 +1045,6 @@ export const Dashboard = () => {
                     <div className="bg-white border-l-4 border-emerald-500 border border-y-slate-200/60 border-r-slate-200/60 rounded-xl p-5 shadow-sm">
                       <div className="flex items-start gap-4">
                         <div className="h-9 w-9 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-bold text-slate-800">
-                            New Employee Access Requests
-                          </h4>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            The following users have requested access to the CRM
-                            system:
-                          </p>
-                          <div className="mt-3 space-y-2">
-                            {pendingAccessRequests.map((req) => (
-                              <div
-                                key={req.id}
-                                className="flex items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-lg hover:bg-slate-100/50 transition-all"
-                              >
-                                <div className="text-xs">
-                                  <span className="font-bold text-slate-700">
-                                    {req.name}
-                                  </span>
-                                  <span className="text-slate-300 mx-2">|</span>
-                                  <span className="text-slate-500 font-medium">
-                                    {req.email}
-                                  </span>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                           </svg>
@@ -1288,29 +1086,6 @@ export const Dashboard = () => {
                     <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-200/60 relative group transition-all hover:shadow-md">
                       <div className="px-5 py-5 sm:p-6">
                         <div className="flex items-center justify-between mb-2">
-                          <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Total Customers
-                          </dt>
-                          <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <dd className="mt-1 text-2xl font-extrabold text-slate-900 tracking-tight">
-                          {stats.customers}
-                        </dd>
-                        <p className="text-[10px] text-emerald-600 font-semibold mt-2 flex items-center gap-1"></p>
                           <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Customers</dt>
                           <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1329,28 +1104,6 @@ export const Dashboard = () => {
                     <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-200/60 relative group transition-all hover:shadow-md">
                       <div className="px-5 py-5 sm:p-6">
                         <div className="flex items-center justify-between mb-2">
-                          <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Active Leads
-                          </dt>
-                          <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <dd className="mt-1 text-2xl font-extrabold text-slate-900 tracking-tight">
-                          {stats.leads}
-                        </dd>
                           <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Leads</dt>
                           <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1369,28 +1122,6 @@ export const Dashboard = () => {
                     <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-200/60 relative group transition-all hover:shadow-md">
                       <div className="px-5 py-5 sm:p-6">
                         <div className="flex items-center justify-between mb-2">
-                          <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Won Deals
-                          </dt>
-                          <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <dd className="mt-1 text-2xl font-extrabold text-slate-900 tracking-tight">
-                          {stats.closedLeads}
-                        </dd>
                           <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider">Won Deals</dt>
                           <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-500">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1455,16 +1186,6 @@ export const Dashboard = () => {
                     {/* Performance Summary Card */}
                     <div className="bg-slate-50 shadow-md rounded-xl p-6 border border-slate-200/50">
                       <div className="flex items-center space-x-2 mb-4">
-                        <svg
-                          className="w-6 h-6 text-yellow-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          Top Performance
-                        </h3>
                         <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -1507,15 +1228,6 @@ export const Dashboard = () => {
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
                               className="bg-indigo-600 h-2.5 rounded-full"
-                              style={{
-                                width: `${stats.bestEmployee.conversionRate}%`,
-                              }}
-                            ></div>
-                          </div>
-                          <p className="text-xs text-gray-600 mt-2">
-                            Target reached:{" "}
-                            {stats.bestEmployee.conversionRate.toFixed(2)}% of
-                            closed deals.
                               style={{ width: `${stats.bestEmployee.conversionRate}%` }}
                             ></div>
                           </div>
@@ -1533,11 +1245,6 @@ export const Dashboard = () => {
                     {/* Top Employees Card */}
                     <div className="bg-slate-50 shadow-lg rounded-2xl overflow-hidden border border-slate-200/60">
                       <div className="px-6 py-4 bg-indigo-50/30 border-b border-gray-100 flex justify-between items-center">
-                        <h3 className="text-md font-bold text-indigo-900">
-                          Key Personnel
-                        </h3>
-                        <button
-                          onClick={() => setActiveTab("employees")}
                         <h3 className="text-md font-bold text-indigo-900">Key Personnel</h3>
                         <button 
                           onClick={() => setActiveTab('employees')}
@@ -1548,8 +1255,6 @@ export const Dashboard = () => {
                       </div>
                       <div className="divide-y divide-gray-50">
                         {employees.slice(0, 5).map((emp) => (
-                          <div
-                            key={emp.id}
                           <div 
                             key={emp.id} 
                             onClick={() => handleEmployeeClick(emp.id)}
@@ -1560,26 +1265,6 @@ export const Dashboard = () => {
                                 {emp.name.charAt(0)}
                               </div>
                               <div className="ml-3">
-                                <p className="text-sm font-bold text-gray-800">
-                                  {emp.name}
-                                </p>
-                                <p className="text-[10px] text-gray-500 uppercase tracking-tighter">
-                                  {emp.role}
-                                </p>
-                              </div>
-                            </div>
-                            <svg
-                              className="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transition-colors"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M9 5l7 7-7 7"
-                              />
                                 <p className="text-sm font-bold text-gray-800">{emp.name}</p>
                                 <p className="text-[10px] text-gray-500 uppercase tracking-tighter">{emp.role}</p>
                               </div>
@@ -1595,11 +1280,6 @@ export const Dashboard = () => {
                     {/* Recent Customers Card */}
                     <div className="bg-slate-50 shadow-lg rounded-2xl overflow-hidden border border-slate-200/60">
                       <div className="px-6 py-4 bg-emerald-50/30 border-b border-gray-100 flex justify-between items-center">
-                        <h3 className="text-md font-bold text-emerald-900">
-                          Priority Customers
-                        </h3>
-                        <button
-                          onClick={() => setActiveTab("customers")}
                         <h3 className="text-md font-bold text-emerald-900">Priority Customers</h3>
                         <button 
                           onClick={() => setActiveTab('customers')}
@@ -1610,8 +1290,6 @@ export const Dashboard = () => {
                       </div>
                       <div className="divide-y divide-gray-50">
                         {customers.slice(0, 5).map((cust) => (
-                          <div
-                            key={cust.id}
                           <div 
                             key={cust.id} 
                             onClick={() => handleCustomerClick(cust.id)}
@@ -1622,16 +1300,6 @@ export const Dashboard = () => {
                                 {cust.name.charAt(0)}
                               </div>
                               <div className="ml-3">
-                                <p className="text-sm font-bold text-gray-800">
-                                  {cust.name}
-                                </p>
-                                <div className="flex items-center">
-                                  <span
-                                    className={`w-1.5 h-1.5 rounded-full mr-1 ${cust.status === "CLOSED" ? "bg-emerald-500" : "bg-amber-500"}`}
-                                  ></span>
-                                  <p className="text-[10px] text-gray-500 font-medium">
-                                    {cust.status}
-                                  </p>
                                 <p className="text-sm font-bold text-gray-800">{cust.name}</p>
                                 <div className="flex items-center">
                                   <span className={`w-1.5 h-1.5 rounded-full mr-1 ${cust.status === 'CLOSED' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
@@ -1640,9 +1308,6 @@ export const Dashboard = () => {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] text-gray-400 font-mono">
-                                #{cust.id}
-                              </p>
                               <p className="text-[10px] text-gray-400 font-mono">#{cust.id}</p>
                             </div>
                           </div>
@@ -1652,8 +1317,7 @@ export const Dashboard = () => {
                   </div>
                 </div>
               )}
-
-
+    
               {activeTab === "employees" && (
                 <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
