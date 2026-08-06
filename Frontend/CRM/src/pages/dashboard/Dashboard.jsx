@@ -62,10 +62,19 @@ export const Dashboard = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   
   // New employee status management states
-
+  const [resignationRequests, setResignationRequests] = useState([]);
+  const [blockedEmployees, setBlockedEmployees] = useState([]);
+  const [deletedEmployees, setDeletedEmployees] = useState([]);
+  const [pendingAccessRequests, setPendingAccessRequests] = useState([]);
+  const [employeeSubTab, setEmployeeSubTab] = useState("directory");
+  const [isResignModalOpen, setIsResignModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   
   // Block removal form states
+  const [unblockReason, setUnblockReason] = useState("");
+  const [isSubmittingUnblock, setIsSubmittingUnblock] = useState(false);
 
+  const pendingBlockRemovals = blockedEmployees.filter((emp) => emp.blockRemovalRequested);
 
   // Customer pagination and search states
 
@@ -371,7 +380,73 @@ export const Dashboard = () => {
     };
 
 
-    // M : declaration Part 
+    
+    const handleAddCustomerSuccess = () => {
+        setIsAddCustomerModalOpen(false);
+        fetchData();
+    };
+
+	
+    const handleRequestUnblock = async (e) => {
+        e.preventDefault();
+        if (!unblockReason.trim()) {
+        toast.error("Please enter a reason for your request");
+        return;
+    }
+
+    setIsSubmittingUnblock(true);
+        try {
+            await requestUnblock(unblockReason);
+            toast.success("Block removal request submitted successfully!");
+            setUnblockReason("");
+            getProfile()
+                .then((response) => {
+                login(response.data);
+                })
+                .catch((err) => console.error("Error refreshing profile:", err));
+        } catch (err) {
+            console.error("Failed to submit unblock request:", err);
+            toast.error(err.response?.data?.message || "Failed to submit request.");
+        } finally {
+        setIsSubmittingUnblock(false);
+        }
+    };
+
+    const handleApproveAccess = async (id) => {
+        if (!window.confirm("Are you sure you want to approve this access request?")) return;
+        try {
+            await approveAccessRequest(id);
+            toast.success("Access request approved successfully!");
+            fetchData();
+        } catch (err) {
+            console.error("Failed to approve access:", err);
+            toast.error(err.response?.data?.message || "Failed to approve access request.");
+        }
+    };
+
+    const handleRejectAccess = async (id) => {
+        if (!window.confirm("Are you sure you want to reject and delete this access request?")) return;
+        try {
+        await rejectAccessRequest(id);
+        toast.success("Access request rejected.");
+        fetchData();
+        } catch (err) {
+        console.error("Failed to reject access:", err);
+        toast.error(err.response?.data?.message || "Failed to reject access request.");
+        }
+    };
+
+    const handleEmployeeClick = (id) => {
+        setSelectedEmployeeId(id);
+        setIsDetailsModalOpen(true);
+    };
+
+    const handleEmployeeClick = (id) => {
+        setSelectedEmployeeId(id);
+        setIsDetailsModalOpen(true);
+    };
+
+
 
     // I : declaration Part
 
@@ -988,7 +1063,353 @@ export const Dashboard = () => {
               )}
 
 
-            {/* M : Employee Tab */}
+              {activeTab === "employees" && (
+                <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
+                  <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Employee Management</h3>
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">Track status, manage resignations, blockings, and archiving.</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full xl:w-auto items-start sm:items-center">
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: "directory", label: "Directory", count: employees.length },
+                          { id: "resignations", label: "Resignations", count: resignationRequests.length, badgeColor: "bg-amber-100 text-amber-800" },
+                          { id: "blocked", label: "Blocked", count: blockedEmployees.length, badgeColor: "bg-red-100 text-red-800" },
+                          { id: "deleted", label: "Archived (Soft Deleted)", count: deletedEmployees.length, badgeColor: "bg-rose-100 text-rose-800" },
+                        ].map((subTab) => (
+                          <button
+                            key={subTab.id}
+                            onClick={() => setEmployeeSubTab(subTab.id)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer ${
+                              employeeSubTab === subTab.id
+                                ? "bg-indigo-600 text-white border-indigo-600"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                          >
+                            {subTab.label}
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                              employeeSubTab === subTab.id ? "bg-white/20 text-white" : subTab.badgeColor || "bg-gray-100 text-gray-600"
+                            }`}>
+                              {subTab.count}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="relative w-full sm:w-64">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </span>
+                        <input 
+                          type="text" 
+                          placeholder="Search employees..." 
+                          value={employeeSearch}
+                          onChange={(e) => setEmployeeSearch(e.target.value)}
+                          className="block w-full pl-9 pr-8 py-1.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-xs transition-all shadow-sm"
+                        />
+                        {employeeSearch && (
+                          <button 
+                            onClick={() => setEmployeeSearch("")}
+                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {employeeSubTab === "directory" && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-white">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {filteredEmployees.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
+                                {employeeSearch ? "No employees match your search." : "No employees found."}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredEmployees.map((emp) => (
+                              <tr
+                                key={emp.id}
+                                onClick={() => handleEmployeeClick(emp.id)}
+                                className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0">
+                                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border-2 border-white shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        {emp.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
+                                      <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">{emp.email}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${emp.role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                    {emp.role}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className={`px-2.5 py-0.5 inline-flex text-xs font-bold rounded-full border ${
+                                    emp.employeeStatus === 'ACTIVE' 
+                                      ? 'bg-green-50 text-green-700 border-green-200' 
+                                      : emp.employeeStatus === 'PENDING_RESIGNATION'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+                                      : emp.employeeStatus === 'BLOCKED'
+                                      ? 'bg-red-50 text-red-700 border-red-200'
+                                      : 'bg-gray-50 text-gray-700 border-gray-200'
+                                  }`}>
+                                    {emp.employeeStatus}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold">View Details</button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {employeeSubTab === "resignations" && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-white">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Reason</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Last Working Date</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Requested At</th>
+                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {filteredResignations.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
+                                {employeeSearch ? "No resignation requests match your search." : "No pending resignation requests."}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredResignations.map((emp) => (
+                              <tr
+                                key={emp.id}
+                                onClick={() => handleEmployeeClick(emp.id)}
+                                className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0">
+                                      <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border-2 border-white shadow-sm">
+                                        {emp.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
+                                      <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 max-w-xs truncate text-sm text-gray-600 font-medium">
+                                  {emp.resignationReason}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
+                                  {emp.lastWorkingDate ? new Date(emp.lastWorkingDate).toLocaleDateString() : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
+                                  {emp.resignationRequestedAt ? new Date(emp.resignationRequestedAt).toLocaleString() : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleApproveResignation(emp.id);
+                                    }}
+                                    className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold"
+                                  >
+                                    Approve
+                                  </button>
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRejectResignation(emp.id);
+                                    }}
+                                    className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold ml-2"
+                                  >
+                                    Reject
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {employeeSubTab === "blocked" && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-white">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Block Reason</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Blocked At</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Blocked Until</th>
+                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {filteredBlocked.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
+                                {employeeSearch ? "No blocked employees match your search." : "No blocked employees."}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredBlocked.map((emp) => (
+                              <tr
+                                key={emp.id}
+                                onClick={() => handleEmployeeClick(emp.id)}
+                                className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0">
+                                      <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold border-2 border-white shadow-sm">
+                                        {emp.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                                        {emp.name}
+                                        {emp.blockRemovalRequested && (
+                                          <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-amber-200 animate-pulse">REMOVAL REQUESTED</span>
+                                        )}
+                                      </div>
+                                      <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 max-w-xs truncate text-sm text-gray-600 font-medium">
+                                  {emp.blockedReason}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
+                                  {emp.blockedAt ? new Date(emp.blockedAt).toLocaleString() : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">
+                                  {emp.blockedUntil ? new Date(emp.blockedUntil).toLocaleString() : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUnblockEmployee(emp.id);
+                                    }}
+                                    className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold"
+                                  >
+                                    Unblock
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {employeeSubTab === "deleted" && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-white">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Deleted At</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Deleted By</th>
+                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {filteredDeleted.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 italic">
+                                {employeeSearch ? "No archived employees match your search." : "No archived employees."}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredDeleted.map((emp) => (
+                              <tr
+                                key={emp.id}
+                                onClick={() => handleEmployeeClick(emp.id)}
+                                className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0">
+                                      <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold border-2 border-white shadow-sm">
+                                        {emp.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
+                                      <div className="text-xs text-gray-500 font-medium">Emp ID: #{emp.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">{emp.email}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                                  {emp.deletedAt ? new Date(emp.deletedAt).toLocaleString() : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                                  {emp.deletedByEmail || "System Admin"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRestoreEmployee(emp.id);
+                                    }}
+                                    className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-lg transition-colors cursor-pointer font-semibold"
+                                  >
+                                    Restore
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                
+                </div>
+              )}
 
             {/* I : Customer Tab   */}
 
@@ -1082,6 +1503,25 @@ export const Dashboard = () => {
           }}
           onCancel={() => setIsResignModalOpen(false)}
         />
+      </Modal>
+
+            <Modal
+        isOpen={isAddCustomerModalOpen}
+        onClose={() => setIsAddCustomerModalOpen(false)}
+        title="Add New Customer"
+      >
+        <AddCustomerForm
+          onSuccess={handleAddCustomerSuccess}
+          onCancel={() => setIsAddCustomerModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        title="Employee Details"
+      >
+        <EmployeeDetails employeeId={selectedEmployeeId} onUpdate={fetchData} />
       </Modal>
 
       
