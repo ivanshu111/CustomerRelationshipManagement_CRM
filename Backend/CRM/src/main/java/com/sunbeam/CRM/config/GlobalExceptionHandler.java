@@ -22,6 +22,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(com.sunbeam.CRM.exception.EmailSendingException.class)
+    public ResponseEntity<?> handleEmailSendingException(com.sunbeam.CRM.exception.EmailSendingException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(com.sunbeam.CRM.exception.InvalidEmployeeStateException.class)
     public ResponseEntity<?> handleInvalidEmployeeStateException(com.sunbeam.CRM.exception.InvalidEmployeeStateException ex) {
         Map<String, Object> body = new HashMap<>();
