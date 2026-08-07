@@ -1,3 +1,4 @@
+import ChatbotWidget from "./components/ChatbotWidget";
 import AppRoutes from "./routers/AppRoutes";
 import { Toaster } from "react-hot-toast";
 
@@ -6,6 +7,7 @@ function App() {
     <>
       <Toaster position="top-right" />
       <AppRoutes />
+      <ChatbotWidget />
     </>
   );
 }

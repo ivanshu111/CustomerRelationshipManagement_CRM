@@ -9,16 +9,26 @@ namespace CrmEmailService.Controllers;
 public class EmailController : ControllerBase
 {
     private readonly IEmailService emailService;
+    private readonly IConfiguration configuration;
 
-    public EmailController(IEmailService emailService)
+    public EmailController(
+        IEmailService emailService,
+        IConfiguration configuration)
     {
         this.emailService = emailService;
+        this.configuration = configuration;
     }
 
     [HttpPost("send")]
     public async Task<ActionResult<EmailResponse>> SendEmail(
+        [FromHeader(Name = "X-API-Key")] string apiKey,
         [FromBody] EmailRequest request)
     {
+        if (apiKey != configuration["ApiSecurity:ApiKey"])
+        {
+            return Unauthorized("Invalid API Key.");
+        }
+
         Console.WriteLine("========== REQUEST RECEIVED ==========");
         Console.WriteLine($"To      : {request.To}");
         Console.WriteLine($"Subject : {request.Subject}");

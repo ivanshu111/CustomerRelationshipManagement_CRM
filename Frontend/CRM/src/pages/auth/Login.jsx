@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser, getProfile, requestAccess } from "../../api/authApi";
+import { registerApplicant } from "../../api/recruitmentApi";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 import Modal from "../../components/Modal";
@@ -19,43 +20,93 @@ export const Login = () => {
   const [requestPassword, setRequestPassword] = useState("");
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
+  const [requestPhone, setRequestPhone] = useState("");
+  const [requestQuestion1, setRequestQuestion1] = useState("");
+  const [requestQuestion2, setRequestQuestion2] = useState("");
+  const [requestQuestion3, setRequestQuestion3] = useState("");
+  const [requestQuestion4, setRequestQuestion4] = useState("");
+
+
+
+
+
   const handleRequestAccessSubmit = async (e) => {
     e.preventDefault();
+
     if (
       !requestName.trim() ||
       !requestEmail.trim() ||
-      !requestPassword.trim()
+      !requestPhone.trim() ||
+      !requestPassword.trim() ||
+      !requestQuestion1.trim() ||
+      !requestQuestion2.trim() ||
+      !requestQuestion3.trim() ||
+      !requestQuestion4.trim()
     ) {
       toast.error("Please fill in all fields");
       return;
     }
 
     setIsSubmittingRequest(true);
-    const requestToast = toast.loading("Submitting access request...");
+
+    const requestToast = toast.loading(
+      "Submitting application..."
+    );
+
     try {
-      await requestAccess({
+      await registerApplicant({
         name: requestName,
         email: requestEmail,
+        phone: requestPhone,
         password: requestPassword,
+        answer1: requestQuestion1,
+        answer2: requestQuestion2,
+        answer3: requestQuestion3,
+        answer4: requestQuestion4,
       });
+
       toast.success(
-        "Access request submitted successfully! Pending approval.",
-        { id: requestToast },
+        "Application submitted successfully! Pending approval.",
+        {
+          id: requestToast,
+        }
       );
+
+      // Close modal
       setIsAccessModalOpen(false);
+
+      // Reset applicant information
       setRequestName("");
       setRequestEmail("");
+      setRequestPhone("");
       setRequestPassword("");
+
+      // Reset applicant answers
+      // Questions themselves remain constant
+      setRequestQuestion1("");
+      setRequestQuestion2("");
+      setRequestQuestion3("");
+      setRequestQuestion4("");
+
     } catch (err) {
-      console.error("Access request error:", err);
+      console.error(
+        "Application submission error:",
+        err
+      );
+
       toast.error(
-        err.response?.data?.message || "Failed to submit access request",
-        { id: requestToast },
+        err.response?.data?.message ||
+          "Failed to submit application",
+        {
+          id: requestToast,
+        }
       );
     } finally {
       setIsSubmittingRequest(false);
     }
   };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,21 +117,18 @@ export const Login = () => {
       const response = await loginUser({ email, password });
       console.log("Login success, token received");
       localStorage.setItem("token", response.data.token);
-
+      
       // Fetch profile to get full user data
       const profileResponse = await getProfile();
       login(profileResponse.data);
-
-      toast.success(`Welcome back, ${profileResponse.data.name}!`, {
-        id: loginToast,
-      });
+      
+      toast.success(`Welcome back, ${profileResponse.data.name}!`, { id: loginToast });
       navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       let errorMessage = "An error occurred during login";
       if (!err.response) {
-        errorMessage =
-          "Cannot connect to server. Is the backend running on port 8080?";
+        errorMessage = "Cannot connect to server. Is the backend running on port 8080?";
       } else if (err.response.status === 401) {
         errorMessage = "Invalid email or password";
       } else if (err.response.status === 403) {
@@ -97,11 +145,11 @@ export const Login = () => {
     <div className="min-h-screen flex relative overflow-hidden bg-white">
       {/* Global Background Overlay */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div
+        <div 
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, #4f46e5 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
+            backgroundSize: '40px 40px'
           }}
         ></div>
       </div>
@@ -110,20 +158,9 @@ export const Login = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden flex-col justify-center px-20">
         {/* The Animated Wallpaper stays here for high impact */}
         <div className="absolute inset-0 z-0 opacity-40">
-          <svg
-            className="w-full h-full"
-            viewBox="0 0 1000 600"
-            preserveAspectRatio="xMidYMid slice"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient
-                id="mapGradientDark"
-                x1="0%"
-                y1="0%"
-                x2="100%"
-                y2="100%"
-              >
+              <linearGradient id="mapGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#312e81" />
                 <stop offset="100%" stopColor="#1e1b4b" />
               </linearGradient>
@@ -137,33 +174,14 @@ export const Login = () => {
             </g>
             <g stroke="rgba(99, 102, 241, 0.3)" strokeWidth="1" fill="none">
               <path d="M200,200 Q400,150 600,150" className="animate-pulse" />
-              <path
-                d="M280,450 Q450,350 550,400"
-                className="animate-pulse"
-                style={{ animationDelay: "1s" }}
-              />
-              <path
-                d="M600,150 Q850,200 850,500"
-                className="animate-pulse"
-                style={{ animationDelay: "2s" }}
-              />
+              <path d="M280,450 Q450,350 550,400" className="animate-pulse" style={{ animationDelay: '1s' }} />
+              <path d="M600,150 Q850,200 850,500" className="animate-pulse" style={{ animationDelay: '2s' }} />
             </g>
             {[
-              { x: 200, y: 200 },
-              { x: 600, y: 150 },
-              { x: 280, y: 450 },
-              { x: 550, y: 400 },
-              { x: 850, y: 500 },
+              {x: 200, y: 200}, {x: 600, y: 150}, {x: 280, y: 450}, 
+              {x: 550, y: 400}, {x: 850, y: 500}
             ].map((dot, i) => (
-              <circle
-                key={i}
-                cx={dot.x}
-                cy={dot.y}
-                r="3"
-                fill="#6366f1"
-                className="animate-pulse"
-                style={{ animationDelay: `${i * 0.5}s` }}
-              />
+              <circle key={i} cx={dot.x} cy={dot.y} r="3" fill="#6366f1" className="animate-pulse" style={{ animationDelay: `${i * 0.5}s` }} />
             ))}
           </svg>
         </div>
@@ -174,8 +192,7 @@ export const Login = () => {
           </h1>
           <div className="h-1.5 w-24 bg-indigo-500 mb-8 rounded-full"></div>
           <p className="text-2xl text-indigo-100 font-light leading-relaxed max-w-md">
-            Connecting Relationships.
-            <br />
+            Connecting Relationships.<br />
             <span className="font-bold text-white">Empowering Growth.</span>
           </p>
           <p className="mt-6 text-indigo-300/60 text-sm font-medium tracking-widest uppercase">
@@ -188,28 +205,16 @@ export const Login = () => {
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 lg:px-24 bg-white z-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 text-left">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">
-              Sign in to your account
-            </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              Welcome back! Please enter your details.
-            </p>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Sign in to your account</h2>
+            <p className="text-xs text-slate-500 font-medium">Welcome back! Please enter your details.</p>
           </div>
-
+          
           {error && (
             <div className="mb-6 bg-rose-50 border-l-4 border-rose-500 p-3.5 rounded-r-lg shadow-sm">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg
-                    className="h-4 w-4 text-rose-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
+                  <svg className="h-4 w-4 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-2.5">
@@ -218,26 +223,14 @@ export const Login = () => {
               </div>
             </div>
           )}
-
+          
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-semibold">
-                Email Address
-              </label>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-semibold">Email Address</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"
-                    />
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
                   </svg>
                 </span>
                 <input
@@ -250,25 +243,13 @@ export const Login = () => {
                 />
               </div>
             </div>
-
+            
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-semibold">
-                Password
-              </label>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-semibold">Password</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </span>
                 <input
@@ -281,37 +262,21 @@ export const Login = () => {
                 />
               </div>
             </div>
-
+ 
             <button
               type="submit"
               className="w-full py-2.5 px-4 text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-all font-semibold text-xs shadow flex items-center justify-center space-x-2 cursor-pointer mt-6"
             >
               <span>Sign In</span>
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           </form>
-
+          
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-400 font-medium">
-              Need a job?{" "}
-              <span
-                onClick={() => setIsAccessModalOpen(true)}
-                className="text-indigo-600 hover:underline cursor-pointer font-bold"
-              >
-                Apply here
-              </span>
+              Need a job? <span onClick={() => setIsAccessModalOpen(true)} className="text-indigo-600 hover:underline cursor-pointer font-bold">Apply here</span>
             </p>
           </div>
         </div>
@@ -320,19 +285,28 @@ export const Login = () => {
       <Modal
         isOpen={isAccessModalOpen}
         onClose={() => {
-          if (!isSubmittingRequest) setIsAccessModalOpen(false);
+          if (!isSubmittingRequest) {
+            setIsAccessModalOpen(false);
+          }
         }}
-        title="Request System Access"
+        title="Apply for a Position"
       >
-        <form onSubmit={handleRequestAccessSubmit} className="space-y-4 p-1">
+        <form
+          onSubmit={handleRequestAccessSubmit}
+          className="space-y-4 p-1"
+        >
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            Enter the details you want to use for your account. A system
-            administrator will review and approve your application.
+            Enter your details and answer the following questions. Your application
+            will be evaluated using our AI-powered assessment system and reviewed
+            by a system administrator.
           </p>
+
+          {/* Full Name */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Full Name
             </label>
+
             <input
               type="text"
               required
@@ -340,12 +314,16 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestName}
               onChange={(e) => setRequestName(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* Email */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Email Address
             </label>
+
             <input
               type="email"
               required
@@ -353,12 +331,33 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestEmail}
               onChange={(e) => setRequestEmail(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* Phone */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              Phone Number
+            </label>
+
+            <input
+              type="tel"
+              required
+              placeholder="9876543210"
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+              value={requestPhone}
+              onChange={(e) => setRequestPhone(e.target.value)}
+              disabled={isSubmittingRequest}
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Desired Password
             </label>
+
             <input
               type="password"
               required
@@ -366,8 +365,91 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestPassword}
               onChange={(e) => setRequestPassword(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* AI Evaluation Section */}
+          <div className="pt-3 border-t border-gray-200">
+            <h3 className="text-sm font-bold text-gray-800 mb-1">
+              Sales Assessment
+            </h3>
+
+            <p className="text-xs text-gray-500 mb-4">
+              Please answer the following questions thoughtfully. Your responses
+              will be evaluated as part of the application process.
+            </p>
+
+            {/* Question 1 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                1. How would you convince a customer to buy a product they are unsure about?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion1}
+                onChange={(e) => setRequestQuestion1(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 2 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                2. How would you handle a customer who is unhappy with your product or service?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion2}
+                onChange={(e) => setRequestQuestion2(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 3 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                3. What approach would you take to build a long-term relationship with a customer?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion3}
+                onChange={(e) => setRequestQuestion3(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 4 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                4. How would you respond if a potential customer says your product is too expensive?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion4}
+                onChange={(e) => setRequestQuestion4(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
           <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
@@ -377,16 +459,21 @@ export const Login = () => {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={isSubmittingRequest}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSubmittingRequest ? "Submitting..." : "Submit Request"}
+              {isSubmittingRequest
+                ? "Submitting Application..."
+                : "Submit Application"}
             </button>
           </div>
         </form>
       </Modal>
+
+
     </div>
   );
 };
