@@ -21,6 +21,12 @@ public class RestClientConfig {
                 .build();
     }
 
-
+    @Bean
+    @Qualifier("aiRestClient")
+    public RestClient aiRestClient() {
+        return RestClient.builder()
+                .baseUrl("http://localhost:8000")
+                .build();
+    }
 
 }
