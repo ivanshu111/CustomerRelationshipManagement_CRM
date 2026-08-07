@@ -19,38 +19,82 @@ export const Login = () => {
   const [requestPassword, setRequestPassword] = useState("");
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
+  const [requestPhone, setRequestPhone] = useState("");
+  const [requestQuestion1, setRequestQuestion1] = useState("");
+  const [requestQuestion2, setRequestQuestion2] = useState("");
+  const [requestQuestion3, setRequestQuestion3] = useState("");
+  const [requestQuestion4, setRequestQuestion4] = useState("");
+
   const handleRequestAccessSubmit = async (e) => {
     e.preventDefault();
+
     if (
       !requestName.trim() ||
       !requestEmail.trim() ||
-      !requestPassword.trim()
+      !requestPhone.trim() ||
+      !requestPassword.trim() ||
+      !requestQuestion1.trim() ||
+      !requestQuestion2.trim() ||
+      !requestQuestion3.trim() ||
+      !requestQuestion4.trim()
     ) {
       toast.error("Please fill in all fields");
       return;
     }
 
     setIsSubmittingRequest(true);
-    const requestToast = toast.loading("Submitting access request...");
+
+    const requestToast = toast.loading(
+      "Submitting application..."
+    );
+
     try {
-      await requestAccess({
+      await registerApplicant({
         name: requestName,
         email: requestEmail,
+        phone: requestPhone,
         password: requestPassword,
+        answer1: requestQuestion1,
+        answer2: requestQuestion2,
+        answer3: requestQuestion3,
+        answer4: requestQuestion4,
       });
+
       toast.success(
-        "Access request submitted successfully! Pending approval.",
-        { id: requestToast },
+        "Application submitted successfully! Pending approval.",
+        {
+          id: requestToast,
+        }
       );
+
+      // Close modal
       setIsAccessModalOpen(false);
+
+      // Reset applicant information
       setRequestName("");
       setRequestEmail("");
+      setRequestPhone("");
       setRequestPassword("");
+
+      // Reset applicant answers
+      // Questions themselves remain constant
+      setRequestQuestion1("");
+      setRequestQuestion2("");
+      setRequestQuestion3("");
+      setRequestQuestion4("");
+
     } catch (err) {
-      console.error("Access request error:", err);
+      console.error(
+        "Application submission error:",
+        err
+      );
+
       toast.error(
-        err.response?.data?.message || "Failed to submit access request",
-        { id: requestToast },
+        err.response?.data?.message ||
+          "Failed to submit application",
+        {
+          id: requestToast,
+        }
       );
     } finally {
       setIsSubmittingRequest(false);
@@ -320,19 +364,28 @@ export const Login = () => {
       <Modal
         isOpen={isAccessModalOpen}
         onClose={() => {
-          if (!isSubmittingRequest) setIsAccessModalOpen(false);
+          if (!isSubmittingRequest) {
+            setIsAccessModalOpen(false);
+          }
         }}
-        title="Request System Access"
+        title="Apply for a Position"
       >
-        <form onSubmit={handleRequestAccessSubmit} className="space-y-4 p-1">
+        <form
+          onSubmit={handleRequestAccessSubmit}
+          className="space-y-4 p-1"
+        >
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            Enter the details you want to use for your account. A system
-            administrator will review and approve your application.
+            Enter your details and answer the following questions. Your application
+            will be evaluated using our AI-powered assessment system and reviewed
+            by a system administrator.
           </p>
+
+          {/* Full Name */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Full Name
             </label>
+
             <input
               type="text"
               required
@@ -340,12 +393,16 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestName}
               onChange={(e) => setRequestName(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* Email */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Email Address
             </label>
+
             <input
               type="email"
               required
@@ -353,12 +410,33 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestEmail}
               onChange={(e) => setRequestEmail(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* Phone */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 font-semibold">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              Phone Number
+            </label>
+
+            <input
+              type="tel"
+              required
+              placeholder="9876543210"
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+              value={requestPhone}
+              onChange={(e) => setRequestPhone(e.target.value)}
+              disabled={isSubmittingRequest}
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
               Desired Password
             </label>
+
             <input
               type="password"
               required
@@ -366,8 +444,91 @@ export const Login = () => {
               className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
               value={requestPassword}
               onChange={(e) => setRequestPassword(e.target.value)}
+              disabled={isSubmittingRequest}
             />
           </div>
+
+          {/* AI Evaluation Section */}
+          <div className="pt-3 border-t border-gray-200">
+            <h3 className="text-sm font-bold text-gray-800 mb-1">
+              Sales Assessment
+            </h3>
+
+            <p className="text-xs text-gray-500 mb-4">
+              Please answer the following questions thoughtfully. Your responses
+              will be evaluated as part of the application process.
+            </p>
+
+            {/* Question 1 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                1. How would you convince a customer to buy a product they are unsure about?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion1}
+                onChange={(e) => setRequestQuestion1(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 2 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                2. How would you handle a customer who is unhappy with your product or service?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion2}
+                onChange={(e) => setRequestQuestion2(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 3 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                3. What approach would you take to build a long-term relationship with a customer?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion3}
+                onChange={(e) => setRequestQuestion3(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+
+            {/* Question 4 */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                4. How would you respond if a potential customer says your product is too expensive?
+              </label>
+
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your answer..."
+                className="w-full text-sm border border-gray-200 rounded-lg p-2.5 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium resize-none"
+                value={requestQuestion4}
+                onChange={(e) => setRequestQuestion4(e.target.value)}
+                disabled={isSubmittingRequest}
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
           <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
@@ -377,12 +538,15 @@ export const Login = () => {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={isSubmittingRequest}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSubmittingRequest ? "Submitting..." : "Submit Request"}
+              {isSubmittingRequest
+                ? "Submitting Application..."
+                : "Submit Application"}
             </button>
           </div>
         </form>
