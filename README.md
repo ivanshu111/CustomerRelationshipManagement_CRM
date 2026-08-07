@@ -4,12 +4,16 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19.2-blue.svg?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4.0-38B2AC.svg?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB.svg?style=for-the-badge&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-8E75B2.svg?style=for-the-badge&logo=googlegemini)](https://ai.google.dev/)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4.svg?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-blue.svg?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
 [![Vite](https://img.shields.io/badge/Vite-8.0-646CFF.svg?style=for-the-badge&logo=vite)](https://vite.dev/)
 
-An enterprise-grade, full-stack **Customer Relationship Management (CRM)** application designed to streamline customer onboarding, lead pipeline tracking, interactive communications history, and employee lifecycle management (active, block-appeals, resignations, and soft-deletes).
+An enterprise-grade, full-stack **Customer Relationship Management (CRM)** application designed to streamline customer onboarding, lead pipeline tracking, interactive communications history, employee lifecycle management (active, block-appeals, resignations, and soft-deletes), **AI-powered Natural Language to SQL analytics**, **real-time SSE notifications**, and a dedicated **.NET Email microservice**.
 
-Built on a robust architecture featuring a **Spring Boot REST API** (Java 21, Hibernate, Spring Security, JWT) and a **React Single Page Application** (Vite, Tailwind CSS, Recharts).
+Built on a robust, multi-service architecture featuring a **Spring Boot REST API** (Java 21, Hibernate, Spring Security, JWT, SSE), a **React Single Page Application** (Vite, Tailwind CSS, Recharts), a **Python FastAPI AI Chatbot** (Google Gemini AI, LangChain, SQLAlchemy), and a **.NET 9 ASP.NET Core Email Microservice**.
 
 ---
 
@@ -32,14 +36,17 @@ Built on a robust architecture featuring a **Spring Boot REST API** (Java 21, Hi
 
 The Enterprise CRM supports two primary user personas with specialized, authenticated views:
 
-- **Administrators (Admin)**: Empowered to monitor global analytics (such as top-performing employees and lead conversion rates), onboard new staff, evaluate employee block/unblock requests, review resignation submissions, and delete or restore employee profiles. All orphaned customers are automatically reassigned to Admins to maintain continuity.
-- **Employees (Employee)**: Responsible for managing their assigned customers, editing client profiles, registering interactions, tracking the conversion pipeline stage (leads), and requesting unblocks or submitting resignation requests.
+- **Administrators (Admin)**: Empowered to monitor global analytics (such as top-performing employees and lead conversion rates), onboard new staff, evaluate employee block/unblock requests, review resignation submissions, delete or restore employee profiles, run natural language database queries via AI Chatbot, and trigger system notifications. All orphaned customers are automatically reassigned to Admins to maintain business continuity.
+- **Employees (Employee)**: Responsible for managing their assigned customers, editing client profiles, registering interactions, tracking the conversion pipeline stage (leads), interacting with the AI Chatbot for personal client insights, requesting unblocks, or submitting resignation requests.
 
 ---
 
 ## 🚀 Key Features
 
 - **Stateless JWT Security**: Secure, role-based REST endpoints backed by Spring Security with automatic expiration mechanisms and custom authentication interceptors.
+- **AI-Powered Natural Language to SQL Chatbot**: Floating AI Assistant (`ChatbotWidget`) powered by Google Gemini AI and Python FastAPI. Users can query customer metrics, lead counts, and performance in plain English with role-scoped security (`ADMIN` vs `EMPLOYEE`).
+- **Real-Time Push Notifications (SSE)**: Server-Sent Events (SSE) engine (`NotificationSseController`) delivering live status alerts, request approvals, and administrative notifications directly to the frontend without polling.
+- **Dedicated .NET Email Microservice**: Isolated C# / ASP.NET Core Web API microservice handling transactional email dispatches (onboarding alerts, approvals, notifications) via SMTP/MailKit.
 - **Onboarding Access Workflow**: Self-service registration request screen where potential employees apply. Admins can view, approve, or reject these applications in real-time.
 - **Dynamic Blocking & Appeal Pipeline**: System to temporarily block employees for audit terms. Blocked employees are locked into an "Appeal Dashboard" to request access restoration, which Admins can approve to reactivate them.
 - **Resignation & Reassignment Engine**: Handles employee resignation requests gracefully. Upon approval, all customer records associated with the resigning employee are instantly reassigned to the administrator, ensuring zero customer data loss.
@@ -51,41 +58,62 @@ The Enterprise CRM supports two primary user personas with specialized, authenti
 
 ## 🛠️ Technology Stack
 
-### Backend (`/backend`)
+### Backend Core (`/Backend/CRM`)
 
 - **Language**: Java 21
-- **Framework**: Spring Boot 3.x / 4.x
+- **Framework**: Spring Boot 4.0.5 / 3.x
 - **Security**: Spring Security (JWT Stateless Authentication)
+- **Real-Time Messaging**: Server-Sent Events (Spring `SseEmitter`)
 - **Database Engine**: MySQL 5.7+ / 8.x
 - **ORM Layer**: Hibernate & Spring Data JPA
-- **Dependency/Build Tool**: Maven (Configured in [pom.xml](file:///D:/spring%20boot%20projects%20selfMade/crmFinal/CRM-FinalProject21-7-26/backend/pom.xml))
-- **Utilities**: ModelMapper, Lombok, Validation API, JSONWebToken (jjwt-api)
+- **Dependency/Build Tool**: Maven (Configured in [pom.xml](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/Backend/CRM/pom.xml))
+- **Utilities**: ModelMapper, Lombok, Validation API, JSONWebToken (`jjwt-api`)
 
-### Frontend (`/frontend/CRM`)
+### Frontend SPA (`/Frontend/CRM`)
 
-- **Core Library**: React 19 (Configured in [package.json](file:///D:/spring%20boot%20projects%20selfMade/crmFinal/CRM-FinalProject21-7-26/frontend/CRM/package.json))
+- **Core Library**: React 19 (Configured in [package.json](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/Frontend/CRM/package.json))
 - **Build Tool**: Vite 8.x
 - **Styling**: Tailwind CSS v4.x (Utility-first styling with high visual aesthetics)
 - **Routing**: React Router DOM v7
 - **Charts**: Recharts (Customizable analytical components)
 - **HTTP Client**: Axios (configured with interceptors to inject JWT headers)
 - **Notifications**: React Hot Toast
+- **AI Integration**: Custom Floating AI Chatbot Widget (`ChatbotWidget.jsx`)
+
+### AI & NLP Microservice (`/chatbot`)
+
+- **Language**: Python 3.13+
+- **Framework**: FastAPI & Uvicorn
+- **AI Model**: Google Gemini AI (`gemini-1.5-flash` via `langchain-google-genai`)
+- **Database Connection**: SQLAlchemy & PyMySQL (Role-aware query generator and safe SQL execution)
+- **Documentation**: FastAPI Interactive Swagger UI (`/docs`)
+
+### Email Microservice (`/Net/CrmEmailService`)
+
+- **Language & Framework**: C# / .NET 9.0 ASP.NET Core Web API
+- **Email Engine**: MailKit / MimeKit / `System.Net.Mail`
+- **Documentation**: Swagger / OpenAPI
 
 ---
 
 ## 🗺️ System Architecture
 
-The following diagram illustrates the data flow pattern throughout the enterprise stack:
+The following diagram illustrates the multi-service architecture and data flow throughout the enterprise stack:
 
 ```mermaid
 graph TD
     A[React SPA Frontend] <-->|HTTP / REST API + JWT| B[Spring Security Filter Chain]
+    A <-->|EventSource / SSE| I[Spring Boot SSE Controller]
+    A <-->|HTTP / REST API| J[FastAPI Python AI Chatbot]
+    J <-->|Google Gemini API| K[Google Gemini AI Engine]
+    J <-->|SQLAlchemy Reads| G[MySQL Database]
     B <-->|Authenticates JWT| C[AuthTokenFilter / SecurityConfig]
     C --> D[Controller Layer]
     D --> E[Service Layer]
     E --> F[Repository Layer]
     F --> G[MySQL Database]
     E -->|Applies Guardrails| H[Business Logic / Orphaning Guards]
+    E -->|Trigger Email Alerts| L[.NET Email Microservice]
 ```
 
 ---
@@ -197,38 +225,60 @@ erDiagram
 | `POST` | `/api/interaction`               | `ADMIN`, `EMPLOYEE` | Creates an interaction log (notes & follow-up). |
 | `PUT`  | `/api/leads/{customerId}/status` | `ADMIN`, `EMPLOYEE` | Direct workflow override of lead status.        |
 
+### Real-Time Notifications & Microservices
+
+| Service / Endpoint               | Method | Access Role   | Description                                                                       |
+| :------------------------------- | :----- | :------------ | :-------------------------------------------------------------------------------- |
+| `/api/notifications/subscribe`  | `GET`  | Authenticated | Real-time Server-Sent Events (SSE) connection stream for live alerts.             |
+| `/api/chat/sql` (FastAPI Chatbot)| `POST` | Authenticated | NLP to SQL translation and conversational analytics using Google Gemini AI.        |
+| `/api/email/send` (.NET Service) | `POST` | Internal API  | Asynchronous email dispatching service for onboarding, password, and status alerts.|
+
 ---
 
 ## 📁 Repository Folder Structure
 
 ```
-CRM-FinalProject21-7-26/
-├── backend/                                   # Spring Boot Core Application
-│   ├── src/main/java/com/sunbeam/crm/
-│   │   ├── config/                            # Security configuration, CORS settings
-│   │   ├── controller/                        # REST Controllers (Auth, Admin, Customer, etc.)
-│   │   ├── dto/                               # Data Transfer Objects
-│   │   ├── entity/                            # JPA Database Entities
-│   │   ├── exception/                         # Global exception handlers
-│   │   ├── repository/                        # Spring Data JPA repositories
-│   │   ├── security/                          # Security filter context & JWT services
-│   │   └── service/                           # Business logic implementations
-│   ├── src/main/resources/
-│   │   └── application.properties             # Database credentials & JWT keys
-│   └── pom.xml                                # Maven build descriptors
-├── frontend/
+CustomerRelationshipManagement_CRM/
+├── Backend/
+│   └── CRM/                                   # Spring Boot Core Application
+│       ├── src/main/java/com/sunbeam/crm/
+│       │   ├── config/                        # Security, CORS & SSE configurations
+│       │   ├── controller/                    # REST Controllers (Auth, Admin, Customer, SSE)
+│       │   ├── dto/                           # Data Transfer Objects
+│       │   ├── entity/                        # JPA Database Entities
+│       │   ├── exception/                     # Global exception handlers
+│       │   ├── repository/                    # Spring Data JPA repositories
+│       │   ├── security/                      # Security filter context & JWT services
+│       │   └── service/                       # Business logic implementations
+│       ├── src/main/resources/
+│       │   └── application.properties         # Database credentials & JWT keys
+│       └── pom.xml                            # Maven build descriptor
+├── Frontend/
 │   └── CRM/                                   # Vite-React frontend bundle
 │       ├── src/
 │       │   ├── api/                           # Axios instance configurations
-│       │   ├── components/                    # Reusable visual UI modules
+│       │   ├── components/                    # UI modules (ChatbotWidget, Modal, etc.)
 │       │   ├── context/                       # Global authentication state
 │       │   ├── layouts/                       # Dashboard structural templates
 │       │   ├── pages/                         # Route pages (Dashboard, Customers, Appeal, etc.)
 │       │   └── index.css                      # Global styles and Tailwind configuration
 │       ├── index.html                         # Entry template
-│       ├── package.json                       # Front-end dependencies config
+│       ├── package.json                       # Frontend dependencies config
 │       └── vite.config.js                     # Vite build configuration
-└── PROJECT_DOCUMENTATION.md                   # Comprehensive technical specifications
+├── chatbot/                                   # Python FastAPI AI Chatbot (NLP to SQL)
+│   ├── database.py                            # SQLAlchemy MySQL execution & safety
+│   ├── nlp_sql.py                             # Google Gemini AI translation logic
+│   ├── main.py                                # FastAPI app & chat endpoints
+│   ├── requirements.txt                       # Python dependencies
+│   └── README.md                              # AI Chatbot module setup guide
+├── Net/
+│   └── CrmEmailService/                       # .NET 9 ASP.NET Core Email Microservice
+│       ├── Controllers/                       # Email Dispatch Controller
+│       ├── Services/                          # SMTP & MailKit Service logic
+│       ├── Program.cs                         # .NET API bootstrap & Swagger setup
+│       └── CrmEmailService.csproj             # .NET project configuration
+├── PROJECT_DOCUMENTATION.md                   # Comprehensive technical specifications
+└── README.md                                  # Enterprise CRM Overview & Guide
 ```
 
 ---
@@ -237,10 +287,12 @@ CRM-FinalProject21-7-26/
 
 ### 📋 Prerequisites
 
-Before launching the application, ensure you have installed:
+Before launching the application services, ensure you have installed:
 
 - **Java SDK 21** or higher.
 - **Node.js** (v18.x or v20.x recommended) and **npm**.
+- **Python 3.10+** (Python 3.13 recommended) & `pip`.
+- **.NET 8.0 / 9.0 SDK** (for Email Microservice).
 - **MySQL Server** (5.7+ / 8.x).
 - **Maven** (or use the packaged wrapper `mvnw`).
 
@@ -254,7 +306,7 @@ Create the MySQL database scheme to match backend properties:
 CREATE DATABASE crmSelf_db;
 ```
 
-If you wish to configure credentials, navigate to the [application.properties](file:///D:/spring%20boot%20projects%20selfMade/crmFinal/CRM-FinalProject21-7-26/backend/src/main/resources/application.properties) file and update the spring datasource properties:
+If you wish to configure credentials, navigate to the backend properties file and update the datasource properties:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/crmSelf_db
@@ -266,10 +318,10 @@ spring.datasource.password=YOUR_MYSQL_PASSWORD
 
 ### 2️⃣ Run the Spring Boot Backend
 
-From the repository root directory, navigate to the `backend` folder and run the application:
+From the repository root directory, navigate to the `Backend/CRM` folder and run the application:
 
 ```bash
-cd backend
+cd Backend/CRM
 # Clean and build the application
 ./mvnw clean install
 
@@ -281,12 +333,46 @@ The backend server will bootstrap on port **8080** by default.
 
 ---
 
-### 3️⃣ Run the React Frontend
+### 3️⃣ Run the Python AI Chatbot Service (Optional for AI Querying)
 
-Open a new terminal window, navigate to the `frontend/CRM` folder, and launch the Vite development server:
+Navigate to the `chatbot` folder, set up environment variables, and start the FastAPI app:
 
 ```bash
-cd frontend/CRM
+cd chatbot
+
+# Create & activate virtual environment
+python -m venv venv
+# Windows: .\venv\Scripts\Activate.ps1
+# Linux/Mac: source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure GEMINI_API_KEY in .env file, then start service:
+python main.py
+```
+
+The AI Chatbot service runs on port **8000** by default with Swagger UI at `http://localhost:8000/docs`.
+
+---
+
+### 4️⃣ Run the .NET Email Microservice (Optional for Email Dispatch)
+
+Navigate to the `Net/CrmEmailService` directory and run the ASP.NET Core service:
+
+```bash
+cd Net/CrmEmailService
+dotnet run
+```
+
+---
+
+### 5️⃣ Run the React Frontend
+
+Open a new terminal window, navigate to the `Frontend/CRM` folder, and launch the Vite development server:
+
+```bash
+cd Frontend/CRM
 # Install all required packages
 npm install
 
@@ -310,9 +396,10 @@ The local console will output the active address, typically **http://localhost:5
 - **Orphan Prevention**: If an employee transitions to `RESIGNED` or `DELETED`, the backend automatically executes database updates to move their customers to the active administrator account executing the state change.
 - **Block Restrictions**: Admins cannot block other administrators.
 - **Blocked Interceptor**: Blocked employees will be routed directly to the Appeal screen upon login. All other requests to `/api/**` will result in a `403 Forbidden` error.
+- **AI SQL Safety Guardrails**: The Python AI Chatbot translates queries exclusively into read-only `SELECT` SQL statements with automatic role checks (`ADMIN` vs `EMPLOYEE`) preventing data leaks across assigned accounts.
 
 ---
 
 ## 📚 Documentation Reference
 
-For an in-depth review of specific endpoints, detailed entity definitions, and known limitations, check out the developer-facing [PROJECT_DOCUMENTATION.md](file:///D:/spring%20boot%20projects%20selfMade/crmFinal/CRM-FinalProject21-7-26/PROJECT_DOCUMENTATION.md).
+For an in-depth review of specific endpoints, detailed entity definitions, and known limitations, check out the developer-facing [PROJECT_DOCUMENTATION.md](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/PROJECT_DOCUMENTATION.md) and the AI module [chatbot/README.md](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/chatbot/README.md).

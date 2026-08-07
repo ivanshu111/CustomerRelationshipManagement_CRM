@@ -18,42 +18,46 @@ This documentation provides an end-to-end technical reference of the **Enterpris
 
 ## 1. Project Overview
 
-The Enterprise CRM is a multi-user portal designed to coordinate client communication, lead management, and employee assignment. The system supports two user categories:
+The Enterprise CRM is a multi-user, multi-service portal designed to coordinate client communication, lead management, employee assignment, real-time event notifications, AI-powered conversational data analytics, and automated email dispatching. The system supports two user categories:
 
-- **Administrators (Admin)**: Oversee employee status (blocking, onboarding, soft deletion, resignation reviews), monitor global conversion rates, view top performers, and manage/reassign customer ownership.
-- **Employees (Employee)**: Manage assigned customers, log interactions, update pipeline lead statuses, and submit resignation or account unblock requests.
+- **Administrators (Admin)**: Oversee employee status (blocking, onboarding, soft deletion, resignation reviews), monitor global conversion rates, view top performers, manage/reassign customer ownership, run natural language database queries via AI Chatbot, and trigger system notifications.
+- **Employees (Employee)**: Manage assigned customers, log interactions, update pipeline lead statuses, interact with the AI Chatbot for personal client insights, and submit resignation or account unblock requests.
 
 ### Technical Stack
 
 - **Java Version**: Java 21
-- **Framework**: Spring Boot 3.x
+- **Backend Framework**: Spring Boot 3.x / 4.x
 - **Security Framework**: Spring Security (JWT-based Stateless Authentication)
-- **Build Automation**: Maven
+- **Real-Time Communications**: Server-Sent Events (SSE via Spring `SseEmitter`)
+- **AI & NLP Microservice**: Python 3.13+, FastAPI, Google Gemini AI (`gemini-1.5-flash`), LangChain, SQLAlchemy, PyMySQL, Uvicorn
+- **Email Microservice**: .NET 9.0 (ASP.NET Core Web API), C#, MailKit / MimeKit, System.Net.Mail
+- **Build Automation**: Maven (Backend), `pip` (Python Chatbot), `.NET CLI` (Email Service)
 - **Database**: MySQL (5.7+ / 8.x)
-- **Object-Relational Mapping (ORM)**: Hibernate / Spring Data JPA
-- **Frontend**: React (Vite-powered, Tailwind CSS, Axios)
+- **Object-Relational Mapping (ORM)**: Hibernate / Spring Data JPA (Backend), SQLAlchemy (Chatbot)
+- **Frontend**: React 19 (Vite-powered, Tailwind CSS, Recharts, Axios, React Hot Toast, Custom AI Chatbot Widget)
 
 ### High-Level Architecture Diagram
 
-The application follows a standard layered architecture:
+The application follows a decoupled, multi-service micro-architecture:
 
 ```
-[React Frontend] (Axios)
-      │
-      ▼ (HTTP / JSON / JWT)
-[Spring Security Filter Chain] (SecurityConfig / AuthTokenFilter)
-      │
-      ▼
-[Controller Layer] (RestControllers mapping request endpoints)
-      │
-      ▼
-[Service Layer] (Services & Implementations containing business logic)
-      │
-      ▼
-[Repository Layer] (Spring Data JPA interfaces mapping databases)
-      │
-      ▼
-[Database Entity Layer] (JPA Entities mapped to MySQL tables)
+                      [React Frontend (Vite + React 19)]
+                                      │
+        ┌─────────────────────────────┼──────────────────────────────┐
+        │ (REST API + JWT)            │ (SSE Stream)                 │ (REST API / JSON)
+        ▼                             ▼                              ▼
+[Spring Security Filter Chain]  [SSE Controller]             [FastAPI Python AI Service]
+ (SecurityConfig/AuthToken)   (Real-Time Alerts)               (Google Gemini 1.5 AI)
+        │                                                            │
+        ▼                                                            ▼
+[Backend Service Layer]                                      [SQLAlchemy Query Engine]
+ (Business Rules & Logic)                                     (Safe Read-Only SELECT)
+        │                                                            │
+        ├─────────────────────────────┬──────────────────────────────┤
+        │ (ORM Mapping)               │ (Async Email Request)        │ (Database Query)
+        ▼                             ▼                              ▼
+[MySQL Database]              [.NET Email Service]            [MySQL Database]
+ (crmSelf_db)                 (ASP.NET Core API)             (crmSelf_db)
 ```
 
 ---
@@ -200,8 +204,8 @@ erDiagram
 
 #### `Role`
 
-- `ADMIN`: Access to administrative endpoints, user list actions, and access requests review.
-- `EMPLOYEE`: Access to customer records, logging interactions, and resignation submissions.
+- `ADMIN`: Access to administrative endpoints, user list actions, access requests review, global AI query analytics, and system notifications.
+- `EMPLOYEE`: Access to customer records, logging interactions, personal AI query insights, and resignation submissions.
 
 #### `LeadStatus`
 
@@ -242,6 +246,55 @@ erDiagram
   6. On successful login, generating a JWT token containing roles and username.
 - **Data Changes**: Reads `Users` table to verify roles and credentials. Writes status updates if block expires.
 - **Edge Cases & Error Handling**: Invalid password returns `401 Unauthorized` with `"Bad credentials"`.
+
+---
+
+### AI-Powered Natural Language to SQL Chatbot (`/chatbot`)
+
+- **Purpose**: Translates plain text natural language user questions into safe SQL queries using Google Gemini AI, executes them on MySQL, and converts raw database results into natural conversational answers.
+- **Trigger / Entry Point**:
+  - Frontend AI Chatbot Widget -> `POST /api/chat/sql`
+  - Body: `{"question": "How many leads were closed this month?", "user_role": "ADMIN", "user_id": 1}`
+- **Preconditions**: Valid authenticated user session (`ADMIN` or `EMPLOYEE`).
+- **Step-by-step Flow**:
+  1. User types a question in the floating `ChatbotWidget` component.
+  2. Frontend sends query along with user context (`user_role` & `user_id`) to the Python FastAPI microservice.
+  3. Google Gemini AI (`gemini-1.5-flash` via LangChain) interprets the natural language, reads database schema context, and generates a structured SQL query.
+  4. If caller is an `EMPLOYEE`, role-based security rules append `WHERE user_id = {user_id}` constraints to enforce customer privacy. If `ADMIN`, global queries are permitted.
+  5. Security guardrail checks generated SQL to ensure it is strictly a read-only `SELECT` statement (blocks any destructive SQL commands like `DROP`, `UPDATE`, `DELETE`, or `INSERT`).
+  6. Query is executed via SQLAlchemy on MySQL, and Gemini formats the output tabular data into a conversational response returned to the UI.
+- **Data Changes**: Read-only database queries with SQL safety verification.
+
+---
+
+### Real-Time Push Notifications (Server-Sent Events)
+
+- **Purpose**: Establishes a persistent, lightweight server-to-client push channel delivering live system notifications without requiring polling.
+- **Trigger / Entry Point**:
+  - `GET /api/notifications/subscribe` (EventSource stream connection)
+- **Preconditions**: Authenticated user session.
+- **Step-by-step Flow**:
+  1. Client initializes an `EventSource` connection to `/api/notifications/subscribe`.
+  2. Spring `NotificationSseController` creates and registers an `SseEmitter` session mapped to the user ID.
+  3. When administrative actions occur (such as onboarding request approvals, resignation submissions, or unblock appeals), the backend dispatches event objects over active SSE emitters.
+  4. Frontend receives event payloads in real time and displays toast popups or updates status counters dynamically.
+- **Data Changes**: Stateless memory emitter registration.
+
+---
+
+### Dedicated .NET Email Microservice (`/Net/CrmEmailService`)
+
+- **Purpose**: Offloads transactional email generation and delivery to an isolated, high-performance microservice.
+- **Trigger / Entry Point**:
+  - `POST /api/email/send`
+  - Body: `{"to": "employee@example.com", "subject": "Welcome", "body": "..."}`
+- **Preconditions**: Valid SMTP credentials configured in `appsettings.json`.
+- **Step-by-step Flow**:
+  1. Main backend or administrative workflow triggers an email notification event (e.g. employee access approval).
+  2. HTTP POST payload is sent asynchronously to the C# .NET Web API endpoint.
+  3. `EmailService` constructs MIME formatted email using MailKit / `System.Net.Mail` and dispatches via configured SMTP server.
+  4. Service returns HTTP 200 status confirmation.
+- **Data Changes**: External email dispatch logging.
 
 ---
 
@@ -431,6 +484,14 @@ erDiagram
 | `GET`  | `/api/interaction/customer/{id}` | `ADMIN`, `EMPLOYEE` | Lists interactions for customer.     | None                    | `List<InteractionResponseDto>` |
 | `PUT`  | `/api/leads/{customerId}/status` | `ADMIN`, `EMPLOYEE` | Updates a customer's lead status.    | `LeadStatusRequest`     | String Message                 |
 
+### AI Chatbot, Notifications & Microservice Endpoints
+
+| Service / Endpoint               | Method | Access Role   | Description                                                                       |
+| :------------------------------- | :----- | :------------ | :-------------------------------------------------------------------------------- |
+| `/api/chat/sql` (FastAPI Chatbot)| `POST` | Authenticated | Translates natural language queries into safe SQL & returns conversational text.  |
+| `/api/notifications/subscribe`  | `GET`  | Authenticated | Establishes a persistent Server-Sent Events (SSE) stream for live alerts.         |
+| `/api/email/send` (.NET Service) | `POST` | Internal API  | Asynchronous email dispatch service via ASP.NET Core & MailKit.                   |
+
 ---
 
 ## 5. Business Rules & Invariants
@@ -440,6 +501,7 @@ erDiagram
 - **Admin Blocking Restriction**: Administrators cannot block other administrators.
 - **Blocked User Limitations**: Blocked employees can log in and view their personal profile info, but the security filter blocks them from accessing all other customer resources.
 - **Soft Delete Persistence**: Soft-deleted or resigned employees cannot be assigned new customers.
+- **AI SQL Execution Safety**: All queries generated by the Python AI Chatbot are restricted to read-only `SELECT` statements with strict role-based data filtering.
 
 ---
 
@@ -461,6 +523,8 @@ erDiagram
 | Read / Update Owned Customers                |            Yes            |             Yes             |
 | View Global Customer Database                |            Yes            |             No              |
 | Log Interaction / Update Lead Pipeline       |            Yes            |             Yes             |
+| Run Natural Language AI Database Queries     |   Yes (Global Insights)   |  Yes (Scoped to Self Data)  |
+| Receive Real-Time Push Notifications (SSE)   |            Yes            |             Yes             |
 
 ---
 
@@ -475,6 +539,7 @@ erDiagram
 3. **Database Pagination & Search**:
    - _Status_: Implemented.
    - _Description_: Customers endpoint `/api/admin/customers` accepts Spring Data `Pageable` parameters for pagination, sorting, and name-based search queries. Frontend dashboard uses paginated query API with interactive search and pagination controls.
-4. **Real-time Notifications (TODO / Not implemented)**:
-   - _Status_: Access requests, resignation submissions, and block removal appeals appear on the dashboard only when the page is refreshed.
-   - _Improvement_: Implement WebSockets or Server-Sent Events (SSE) to update the Admin dashboard in real time.
+4. **Real-time Notifications**:
+   - _Status_: Implemented via Spring Boot SSE (Server-Sent Events) controller (`NotificationSseController`) delivering live updates to connected frontend clients.
+5. **AI-Powered Conversational Analytics**:
+   - _Status_: Implemented via Python FastAPI, Google Gemini AI (`gemini-1.5-flash`), and SQLAlchemy with read-only SQL safety checks.
