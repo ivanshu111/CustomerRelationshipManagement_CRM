@@ -815,23 +815,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Ivanshu pratap singh\\.nuget\\packages\\": {},
+    "C:\\Users\\Lenovo\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\crmProjectLatest\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\CrmEmailService.csproj",
+      "projectUniqueName": "D:\\DAC PROJECT\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\CrmEmailService.csproj",
       "projectName": "CrmEmailService",
-      "projectPath": "E:\\crmProjectLatest\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\CrmEmailService.csproj",
-      "packagesPath": "C:\\Users\\Ivanshu pratap singh\\.nuget\\packages\\",
-      "outputPath": "E:\\crmProjectLatest\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\obj\\",
+      "projectPath": "D:\\DAC PROJECT\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\CrmEmailService.csproj",
+      "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
+      "outputPath": "D:\\DAC PROJECT\\CustomerRelationshipManagement_CRM\\Net\\CrmEmailService\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Ivanshu pratap singh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -906,7 +906,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.302/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
@@ -1329,8 +1329,8 @@
       "code": "NU1510",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "PackageReference Microsoft.Extensions.Options will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "libraryId": "Microsoft.Extensions.Options",
+      "message": "PackageReference Microsoft.Extensions.Options.ConfigurationExtensions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item.",
+      "libraryId": "Microsoft.Extensions.Options.ConfigurationExtensions",
       "targetGraphs": [
         "net10.0"
       ]
@@ -1339,8 +1339,8 @@
       "code": "NU1510",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "PackageReference Microsoft.Extensions.Options.ConfigurationExtensions will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "libraryId": "Microsoft.Extensions.Options.ConfigurationExtensions",
+      "message": "PackageReference Microsoft.Extensions.Options will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item.",
+      "libraryId": "Microsoft.Extensions.Options",
       "targetGraphs": [
         "net10.0"
       ]
