@@ -19,9 +19,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
+// Configure HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-
-//app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapControllers();
 
