@@ -34,5 +34,9 @@ public class AIEvaluation {
     @CreationTimestamp
     private LocalDateTime evaluatedAt;
 
+    @OneToOne
+    @JoinColumn(name = "applicant_id", nullable = false, unique = true)
+    private Applicant applicant;
+
 
 }

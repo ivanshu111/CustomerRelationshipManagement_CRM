@@ -3,7 +3,7 @@ package com.sunbeam.CRM.controller;
 
 import com.sunbeam.CRM.dto.UpdatePasswordRequestDto;
 import com.sunbeam.CRM.dto.LoginRequestDto;
-import com.sunbeam.CRM.dto.LoginResponse;
+import com.sunbeam.CRM.dto.LoginResponseDto;
 import com.sunbeam.CRM.dto.RegisterRequestDto;
 import com.sunbeam.CRM.security.JwtUtils;
 import com.sunbeam.CRM.security.UserDetailsImpl;
@@ -73,7 +73,7 @@ public class AuthController {
                 .findFirst()
                 .orElse("");
 
-        return ResponseEntity.ok(new LoginResponse(jwtToken,role));
+        return ResponseEntity.ok(new LoginResponseDto(jwtToken,role));
     }
 
     @GetMapping("/profile")
