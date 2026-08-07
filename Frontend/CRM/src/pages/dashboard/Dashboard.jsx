@@ -42,16 +42,15 @@ import {
   getUnreadNotificationCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-} from "../../api/notificationApi"
+} from "../../api/notificatonApi";
 
 import Modal from "../../components/Modal";
 import { RegisterForm } from "../auth/RegisterForm";
 import { getProfile } from "../../api/authApi";
 import { toast } from "react-hot-toast";
-import { Dashboard } from './Dashboard';
-import { AddCustomerForm } from "../customers/AddCustomerForm";
+import { AddCustomerForm } from "../../pages/customers/AddCustomerForm";
 import { EmployeeDetails } from "../admin/EmployeeDetails";
-import ApplicantDetails from "../admin/ApplicantDetails";
+//import { ApplicantDetails } from "../admin/ApplicantDetails"
 import { CustomerDetails } from "../customers/CustomerDetails";
 import { InteractionHistory } from "../interactions/InteractionHistory";
 import { ResignationForm } from "./ResignationForm";

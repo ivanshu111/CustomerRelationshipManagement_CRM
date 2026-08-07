@@ -55,3 +55,7 @@ export const requestUnblock = (reason) => {
 export const updatePassword = (data) => {
   return api.post("/api/employee/update-password", data);
 };
+
+export const getEmployeeConversionRate = (employeeId) => {
+  return api.get(`/api/employee/analytics/conversion-rate/${employeeId}`);
+};
