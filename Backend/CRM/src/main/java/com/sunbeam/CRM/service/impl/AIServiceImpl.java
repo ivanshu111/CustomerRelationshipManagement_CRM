@@ -7,6 +7,7 @@ import com.sunbeam.CRM.entities.Applicant;
 import com.sunbeam.CRM.entities.Recommendation;
 import com.sunbeam.CRM.service.AIService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -16,6 +17,9 @@ import java.util.List;
 public class AIServiceImpl implements AIService {
 
     private final RestClient restClient;
+
+    @Value("${ai.service.api-key}")
+    private String apiKey;
 
     public AIServiceImpl(
             @Qualifier("aiRestClient") RestClient restClient) {
@@ -38,6 +42,7 @@ public class AIServiceImpl implements AIService {
 
         AIResponse response = restClient.post()
                 .uri("/api/ai/evaluate")
+                .header("X-API-Key", apiKey)
                 .body(request)
                 .retrieve()
                 .body(AIResponse.class);
