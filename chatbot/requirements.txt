@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+langchain
+langchain-google-genai
+langchain-community
+sqlalchemy
+pymysql
+python-dotenv
+httpx
