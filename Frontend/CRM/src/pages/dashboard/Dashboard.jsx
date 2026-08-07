@@ -37,11 +37,25 @@ import {
   getEmployeeConversionRate
 } from "../../api/employeeApi";
 
+import {
+  getMyNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "../../api/notificationApi"
+
 import Modal from "../../components/Modal";
 import { RegisterForm } from "../auth/RegisterForm";
 import { getProfile } from "../../api/authApi";
 import { toast } from "react-hot-toast";
 import { Dashboard } from './Dashboard';
+import { AddCustomerForm } from "../customers/AddCustomerForm";
+import { EmployeeDetails } from "../admin/EmployeeDetails";
+import ApplicantDetails from "../admin/ApplicantDetails";
+import { CustomerDetails } from "../customers/CustomerDetails";
+import { InteractionHistory } from "../interactions/InteractionHistory";
+import { ResignationForm } from "./ResignationForm";
+import { ChangePasswordForm } from "./ChangePasswordForm";
 
 
 export const Dashboard = () => {
@@ -77,9 +91,23 @@ export const Dashboard = () => {
   const pendingBlockRemovals = blockedEmployees.filter((emp) => emp.blockRemovalRequested);
 
   // Customer pagination and search states
+  const [customerPage, setCustomerPage] = useState(0);
+  const [customerTotalPages, setCustomerTotalPages] = useState(0);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [employeeSearch, setEmployeeSearch] = useState("");
 
 
   const [employeeConversionRate, setEmployeeConversionRate] = useState(0);
+
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [applicantsError, setApplicantsError] = useState("");
+  const [selectedApplicantId, setSelectedApplicantId] = useState(null);
+  const [isApplicantModalOpen, setIsApplicantModalOpen] = useState(false);
  
   const [stats, setStats] = useState({
     customers: 0,
@@ -104,8 +132,60 @@ export const Dashboard = () => {
     "#82ca9d",
   ];
 
-
+  const fetchCustomersData = (page = customerPage, search = customerSearch) => {
+    if (user && user.role === "ADMIN") {
+      getAllCustomers({
+        page: page,
+        size: 10,
+        search: search || undefined
+      })
+        .then((res) => {
+          setCustomers(res.data.content || []);
+          setCustomerTotalPages(res.data.totalPages || 0);
+        })
+        .catch((err) => console.error("Error fetching customers:", err));
+    }
+  };
     
+  const fetchApplicants = async () => {
+    try {
+      setApplicantsLoading(true);
+      setApplicantsError("");
+
+      const response = await getAllApplicants();
+
+      setApplicants(response.data);
+    } catch (error) {
+      console.error("Failed to fetch applicants:", error);
+
+      setApplicantsError(
+        error.response?.data?.message ||
+        "Failed to load applicants."
+      );
+    } finally {
+      setApplicantsLoading(false);
+    }
+  };
+
+   useEffect(() => {
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+
+    try {
+      const response = await getUnreadNotificationCount();
+
+      setUnreadCount(response.data);
+    } catch (error) {
+      console.error(
+        "Failed to fetch unread notification count:",
+        error
+      );
+    }
+  };
+
+  fetchUnreadCount();
+}, [user]);
+
         
     useEffect(() => {
     const fetchNotifications = async () => {
@@ -122,7 +202,6 @@ export const Dashboard = () => {
         );
         }
     };
-
     fetchNotifications();
     }, [user]);
 
@@ -157,6 +236,12 @@ export const Dashboard = () => {
         );
     };
     }, []);
+
+    useEffect(() => {
+    if (activeTab === "customers") {
+      fetchCustomersData(customerPage, customerSearch);
+    }
+  }, [customerPage, customerSearch, activeTab]);
 
     const fetchData = () => {
     if (user) {
@@ -276,6 +361,12 @@ export const Dashboard = () => {
         return null;
     }
 
+    useEffect(() => {
+  if (activeTab === "applicants") {
+    fetchApplicants();
+  }
+  }, [activeTab]);
+
 
     const handleMarkAsRead = async (notificationId) => {
     try {
@@ -393,7 +484,6 @@ export const Dashboard = () => {
         toast.error("Please enter a reason for your request");
         return;
     }
-
     setIsSubmittingUnblock(true);
         try {
             await requestUnblock(unblockReason);
@@ -441,10 +531,111 @@ export const Dashboard = () => {
         setIsDetailsModalOpen(true);
     };
 
-    const handleEmployeeClick = (id) => {
-        setSelectedEmployeeId(id);
-        setIsDetailsModalOpen(true);
+    const handleCustomerClick = (id) => {
+        setSelectedCustomerId(id);
+        setIsCustomerModalOpen(true);
     };
+
+    const handleHistoryClick = (e, id) => {
+        e.stopPropagation();
+        setSelectedCustomerId(id);
+        setIsHistoryModalOpen(true);
+    };
+
+    const handleApproveResignation = async (id) => {
+    if (!window.confirm("Are you sure you want to APPROVE this resignation? This employee will be inactivated and their customers reassigned to you.")) return;
+    try {
+      await approveResignation(id);
+      toast.success("Resignation approved successfully!");
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to approve resignation.");
+    }
+  };
+
+  const handleRejectResignation = async (id) => {
+    if (!window.confirm("Are you sure you want to REJECT this resignation?")) return;
+    try {
+      await rejectResignation(id);
+      toast.success("Resignation request rejected.");
+      fetchData();
+      
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reject resignation.");
+    }
+  };
+  
+  const handleUnblockEmployee = async (id) => {
+      if (!window.confirm("Are you sure you want to unblock this employee? Their status will be set back to ACTIVE.")) return;
+      try {
+        await unblockEmployee(id);
+        toast.success("Employee unblocked successfully!");
+        fetchData();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to unblock employee.");
+      }
+    };
+  
+    const handleRestoreEmployee = async (id) => {
+      if (!window.confirm("Are you sure you want to restore this employee? Their status will be set back to ACTIVE.")) return;
+      try {
+        await restoreEmployee(id);
+        toast.success("Employee restored successfully!");
+        fetchData();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to restore employee.");
+      }
+    };
+
+    const filteredEmployees = employees.filter((emp) => {
+    const term = employeeSearch.toLowerCase();
+    return (
+      (emp.name && emp.name.toLowerCase().includes(term)) ||
+      (emp.email && emp.email.toLowerCase().includes(term)) ||
+      (emp.id && emp.id.toString().includes(term)) ||
+      (emp.role && emp.role.toLowerCase().includes(term)) ||
+      (emp.employeeStatus && emp.employeeStatus.toLowerCase().includes(term))
+    );
+  });
+
+  const filteredResignations = resignationRequests.filter((emp) => {
+    const term = employeeSearch.toLowerCase();
+    return (
+      (emp.name && emp.name.toLowerCase().includes(term)) ||
+      (emp.email && emp.email.toLowerCase().includes(term)) ||
+      (emp.id && emp.id.toString().includes(term)) ||
+      (emp.resignationReason && emp.resignationReason.toLowerCase().includes(term))
+    );
+  });
+
+  const filteredBlocked = blockedEmployees.filter((emp) => {
+    const term = employeeSearch.toLowerCase();
+    return (
+      (emp.name && emp.name.toLowerCase().includes(term)) ||
+      (emp.email && emp.email.toLowerCase().includes(term)) ||
+      (emp.id && emp.id.toString().includes(term)) ||
+      (emp.blockedReason && emp.blockedReason.toLowerCase().includes(term))
+    );
+  });
+
+  const filteredDeleted = deletedEmployees.filter((emp) => {
+    const term = employeeSearch.toLowerCase();
+    return (
+      (emp.name && emp.name.toLowerCase().includes(term)) ||
+      (emp.email && emp.email.toLowerCase().includes(term)) ||
+      (emp.id && emp.id.toString().includes(term)) ||
+      (emp.deletedByEmail && emp.deletedByEmail.toLowerCase().includes(term))
+    );
+  });
+
+  const filteredAccessRequests = pendingAccessRequests.filter((emp) => {
+    const term = employeeSearch.toLowerCase();
+    return (
+      (emp.name && emp.name.toLowerCase().includes(term)) ||
+      (emp.email && emp.email.toLowerCase().includes(term)) ||
+      (emp.id && emp.id.toString().includes(term))
+    );
+  });
 
 
 
@@ -1407,6 +1598,376 @@ export const Dashboard = () => {
                     </div>
                   )}
 
+                  {activeTab === "customers" && (
+                <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
+                  <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-gray-900">Global Customer Base</h3>
+                    <div className="flex space-x-3">
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </span>
+                        <input 
+                          type="text" 
+                          placeholder="Search customers..." 
+                          value={customerSearch}
+                          onChange={(e) => {
+                            setCustomerSearch(e.target.value);
+                            setCustomerPage(0);
+                          }}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all shadow-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-white">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Customer Info
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Contact Details
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Assigned Agent
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Pipeline Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-100">
+                        {customers.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500 italic">No customers found.</td>
+                          </tr>
+                        ) : (
+                          customers.map((cust) => (
+                            <tr
+                              key={cust.id}
+                              onClick={() => handleCustomerClick(cust.id)}
+                              className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md transform group-hover:scale-110 transition-transform">
+                                    {cust.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-bold text-gray-900">{cust.name}</div>
+                                    <div className="text-xs text-gray-500">ID: CRM-{cust.id.toString().padStart(4, '0')}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 font-medium">{cust.email}</div>
+                                <div className="text-xs text-gray-500">{cust.phone}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center text-sm text-gray-600 font-semibold">
+                                  <svg className="w-4 h-4 mr-1.5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                  </svg>
+                                  {cust.assignedToName}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border-2 ${
+                                    cust.status === "CLOSED" 
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                                      : cust.status === "INTERESTED"
+                                      ? "bg-blue-50 text-blue-700 border-blue-100"
+                                      : "bg-amber-50 text-amber-700 border-amber-100"
+                                  }`}
+                                >
+                                  {cust.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Pagination Controls */}
+                  <div className="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-between">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={() => setCustomerPage(prev => Math.max(prev - 1, 0))}
+                        disabled={customerPage === 0}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setCustomerPage(prev => Math.min(prev + 1, customerTotalPages - 1))}
+                        disabled={customerPage >= customerTotalPages - 1}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Showing Page <span className="font-medium">{customerPage + 1}</span> of{" "}
+                          <span className="font-medium">{customerTotalPages || 1}</span>
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <button
+                            onClick={() => setCustomerPage(0)}
+                            disabled={customerPage === 0}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                          >
+                            &laquo; First
+                          </button>
+                          <button
+                            onClick={() => setCustomerPage(prev => Math.max(prev - 1, 0))}
+                            disabled={customerPage === 0}
+                            className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                          >
+                            &lsaquo; Previous
+                          </button>
+                          <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-50 text-sm font-medium text-gray-700">
+                            {customerPage + 1}
+                          </span>
+                          <button
+                            onClick={() => setCustomerPage(prev => Math.min(prev + 1, customerTotalPages - 1))}
+                            disabled={customerPage >= customerTotalPages - 1}
+                            className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                          >
+                            Next &rsaquo;
+                          </button>
+                          <button
+                            onClick={() => setCustomerPage(customerTotalPages - 1)}
+                            disabled={customerPage >= customerTotalPages - 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                          >
+                            Last &raquo;
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "applicants" && (
+                <div className="space-y-6">
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-800">
+                        Applicants
+                      </h2>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        Review and manage job applicants.
+                      </p>
+                    </div>
+
+                    <div className="bg-indigo-50 px-4 py-2 rounded-lg">
+                      <span className="text-sm font-semibold text-indigo-600">
+                        Total Applicants: {applicants.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Loading */}
+                  {applicantsLoading && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
+                      <p className="text-slate-500">
+                        Loading applicants...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {!applicantsLoading && applicantsError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                      <p className="text-sm text-red-600">
+                        {applicantsError}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {!applicantsLoading &&
+                    !applicantsError &&
+                    applicants.length === 0 && (
+                      <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
+                        <h3 className="text-lg font-semibold text-slate-700">
+                          No Applicants Found
+                        </h3>
+
+                        <p className="mt-2 text-sm text-slate-500">
+                          There are currently no job applications.
+                        </p>
+                      </div>
+                    )}
+
+                  {/* Applicants Table */}
+                  {!applicantsLoading &&
+                    !applicantsError &&
+                    applicants.length > 0 && (
+                      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+
+                            <thead className="bg-slate-50 border-b border-slate-200">
+                              <tr>
+
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  Applicant
+                                </th>
+
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  Contact
+                                </th>
+
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  AI Score
+                                </th>
+
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  Recommendation
+                                </th>
+
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  Status
+                                </th>
+
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                  Action
+                                </th>
+
+                              </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-slate-100">
+
+                              {applicants.map((applicant) => (
+                                <tr
+                                  key={applicant.id}
+                                  className="hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                                  onClick={() => {
+                                      setSelectedApplicantId(applicant.id);
+                                      setIsApplicantModalOpen(true);
+                                  }}
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0">
+                                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border-2 border-white shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        {applicant.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-semibold text-gray-900">{applicant.name}</div>
+                                      <div className="text-xs text-gray-500 font-medium">Applicant ID: #{applicant.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                  {/* Contact */}
+                                  <td className="px-6 py-4">
+                                    <div className="text-sm text-slate-700">
+                                      {applicant.email}
+                                    </div>
+
+                                    <div className="text-xs text-slate-500 mt-1">
+                                      {applicant.phone}
+                                    </div>
+                                  </td>
+
+                                  {/* Score */}
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm font-bold text-indigo-600">
+                                      {applicant.score !== null &&
+                                      applicant.score !== undefined
+                                        ? applicant.score
+                                        : "N/A"}
+                                    </span>
+                                  </td>
+
+                                  {/* Recommendation */}
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm font-semibold text-slate-700">
+                                      {applicant.recommendation || "N/A"}
+                                    </span>
+                                  </td>
+
+                                  {/* Status */}
+                                  <td className="px-6 py-4">
+                                  <span
+                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                      applicant.status === "PENDING"
+                                        ? "bg-yellow-100 text-yellow-700"
+                                        : applicant.status === "ACCEPTED"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-red-100 text-red-700"
+                                    }`}
+                                  >
+                                    {applicant.status || "N/A"}
+                                  </span>
+                                </td>
+                                {/* Action */}
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center justify-center gap-3">
+
+                                    {/* Show buttons only when status is PENDING */}
+                                    {applicant.status === "PENDING" && (
+                                      <>
+                                        {/* Approve Button */}
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAcceptApplicant(applicant.id);
+                                          }}
+                                          className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer font-semibold"
+                                        >
+                                          Approve
+                                        </button>
+
+                                        {/* Reject Button */}
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRejectApplicant(applicant.id);
+                                          }}
+                                          className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer font-semibold"
+                                        >
+                                          Reject
+                                        </button>
+                                      </>
+                                    )}
+
+                                  </div>
+                                </td>
+                                </tr>
+                              ))}
+
+                            </tbody>
+
+                          </table>
+                        </div>
+
+                      </div>
+                    )}
+
+                </div>
+              )}
+
                 
                 </div>
               )}
@@ -1468,7 +2029,281 @@ export const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* S : Employee Dashboard - part 1 */}
+              {user.employeeStatus === "PENDING_RESIGNATION" && (
+                <div className="bg-amber-50 border border-amber-200/60 p-4 rounded-xl flex items-center gap-3 shadow-sm animate-pulse">
+                  <svg className="w-6 h-6 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-bold text-amber-800">Resignation Request Pending Approval</p>
+                    <p className="text-xs text-amber-700 font-medium">Your request to resign is currently being reviewed by the administration. You can continue managing your customers until the request is approved.</p>
+                  </div>
+                </div>
+              )}
+              {/* Employee Stats */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      My Assigned Customers
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                      {stats.customers}
+                    </dd>
+                  </div>
+                </div>
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      My Closed Deals
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                      {stats.closedLeads}
+                    </dd>
+                  </div>
+                </div>
+              </div>
+
+
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        My Conversion Rate
+                      </dt>
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        Closed deals vs. assigned customers
+                      </p>
+                    </div>
+
+                    {/* Circular Progress */}
+                    <div className="relative h-20 w-20">
+                      <svg
+                        className="h-20 w-20 -rotate-90"
+                        viewBox="0 0 36 36"
+                      >
+                        {/* Background Circle */}
+                        <path
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke="#e5e7eb"
+                          strokeWidth="3"
+                        />
+
+                        {/* Progress Circle */}
+                        <path
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeDasharray={`${employeeConversionRate}, 100`}
+                          className="text-indigo-600 transition-all duration-700"
+                        />
+                      </svg>
+
+                      {/* Percentage in Center */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-sm font-bold text-gray-900">
+                          {employeeConversionRate.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Progress Bar */}
+                  <div className="mt-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-medium text-gray-500">
+                        Performance
+                      </span>
+
+                      <span className="text-xs font-bold text-indigo-600">
+                        {employeeConversionRate >= 70
+                          ? "Excellent"
+                          : employeeConversionRate >= 40
+                          ? "Good"
+                          : "Needs Improvement"}
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-indigo-600 h-2 rounded-full transition-all duration-700"
+                        style={{
+                          width: `${Math.min(employeeConversionRate, 100)}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              
+
+              {/* My Customers Table */}
+              <div className="bg-slate-50 shadow rounded-lg border border-slate-200/50">
+                <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center sm:px-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    My Customers
+                  </h3>
+                  <span className="text-xs text-gray-400">
+                    Click a row for details, or 'History' for interactions
+                  </span>
+                </div>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {myCustomers.map((cust) => (
+                      <tr
+                        key={cust.id}
+                        onClick={() => handleCustomerClick(cust.id)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {cust.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {cust.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {cust.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cust.status === "CLOSED" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+                          >
+                            {cust.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={(e) => handleHistoryClick(e, cust.id)}
+                            className="text-indigo-600 hover:text-indigo-900 font-medium"
+                          >
+                            History
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Interest-based Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Interested Customers Column */}
+                <div className="bg-slate-50 shadow rounded-lg border border-slate-200/50">
+                  <div className="px-4 py-5 border-b border-gray-200 bg-green-50 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-green-800">
+                      Interested Customers
+                    </h3>
+                  </div>
+                  <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    {interestedCustomers.length === 0 ? (
+                      <li className="px-6 py-4 text-sm text-gray-500 italic">
+                        No interested customers yet.
+                      </li>
+                    ) : (
+                      interestedCustomers.map((cust) => (
+                        <li
+                          key={cust.id}
+                          onClick={() => handleCustomerClick(cust.id)}
+                          className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-indigo-600 truncate">
+                              {cust.name}
+                            </p>
+                            <button
+                              onClick={(e) => handleHistoryClick(e, cust.id)}
+                              className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded hover:bg-indigo-200"
+                            >
+                              History
+                            </button>
+                          </div>
+                          <div className="mt-1 flex justify-between items-center">
+                            <p className="text-xs text-gray-500">
+                              {cust.phone}
+                            </p>
+                            <p className="text-[10px] text-gray-400">
+                              {cust.email}
+                            </p>
+                          </div>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+
+                {/* Not Interested Customers Column */}
+                <div className="bg-slate-50 shadow rounded-lg border border-slate-200/50">
+                  <div className="px-4 py-5 border-b border-gray-200 bg-red-50 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-red-800">
+                      Not Interested Customers
+                    </h3>
+                  </div>
+                  <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    {notInterestedCustomers.length === 0 ? (
+                      <li className="px-6 py-4 text-sm text-gray-500 italic">
+                        No "not interested" customers.
+                      </li>
+                    ) : (
+                      notInterestedCustomers.map((cust) => (
+                        <li
+                          key={cust.id}
+                          onClick={() => handleCustomerClick(cust.id)}
+                          className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {cust.name}
+                            </p>
+                            <button
+                              onClick={(e) => handleHistoryClick(e, cust.id)}
+                              className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded hover:bg-gray-200"
+                            >
+                              History
+                            </button>
+                          </div>
+                          <div className="mt-1 flex justify-between items-center">
+                            <p className="text-xs text-gray-500">
+                              {cust.phone}
+                            </p>
+                            <p className="text-[10px] text-gray-400">
+                              {cust.email}
+                            </p>
+                          </div>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -1505,7 +2340,7 @@ export const Dashboard = () => {
         />
       </Modal>
 
-            <Modal
+      <Modal
         isOpen={isAddCustomerModalOpen}
         onClose={() => setIsAddCustomerModalOpen(false)}
         title="Add New Customer"
@@ -1524,12 +2359,43 @@ export const Dashboard = () => {
         <EmployeeDetails employeeId={selectedEmployeeId} onUpdate={fetchData} />
       </Modal>
 
-      
+      <Modal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        title="Customer Details & Interactions"
+      >
+        <CustomerDetails customerId={selectedCustomerId} onUpdate={fetchData} />
+      </Modal>
 
-      
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        title="Interaction History"
+      >
+        <InteractionHistory customerId={selectedCustomerId} />
+      </Modal>
 
-     
-      
+      <Modal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+        title="Change Password"
+      >
+      <ChangePasswordForm
+          onSuccess={() => setIsChangePasswordModalOpen(false)}
+          onCancel={() => setIsChangePasswordModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+          isOpen={isApplicantModalOpen}
+          onClose={() => setIsApplicantModalOpen(false)}
+          title="Applicant Details"
+      >
+          <ApplicantDetails
+              applicantId={selectedApplicantId}
+              onUpdate={fetchApplicants}
+          />
+      </Modal>
     </div>
   );
 };
