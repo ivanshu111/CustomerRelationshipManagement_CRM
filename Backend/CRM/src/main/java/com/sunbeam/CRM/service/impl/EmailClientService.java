@@ -5,6 +5,7 @@ import com.sunbeam.CRM.dto.EmailResponseDto;
 
 import com.sunbeam.CRM.exception.EmailSendingException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -13,6 +14,9 @@ public class EmailClientService {
 
     @Qualifier("emailRestClient")
     private final RestClient restClient;
+
+    @Value("${email.service.api-key}")
+    private String apiKey;
 
     public EmailClientService(
             @Qualifier("emailRestClient") RestClient restClient) {
@@ -34,6 +38,7 @@ public class EmailClientService {
         try {
             return restClient.post()
                     .uri("/api/Email/send")
+                    .header("X-API-Key", apiKey)
                     .body(request)
                     .retrieve()
                     .body(EmailResponseDto.class);
