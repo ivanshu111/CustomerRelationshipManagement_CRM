@@ -40,7 +40,7 @@ public class FollowUpReminderServiceImpl implements FollowUpReminderService {
         // 4. Group by employee
         Map<Users, List<Interaction>> groupedInteractions =
                 interactions.stream()
-                        .collect(Collectors.groupingBy(Interaction::getEmployee));
+                        .collect(Collectors.groupingBy(interaction -> interaction.getEmployee()));
 
         // 5. Send one email to each employee
         for (Map.Entry<Users, List<Interaction>> entry : groupedInteractions.entrySet()) {
