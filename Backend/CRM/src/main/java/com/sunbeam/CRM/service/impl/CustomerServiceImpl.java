@@ -205,6 +205,7 @@ public class CustomerServiceImpl implements CustomerService {
         return customers.stream().map(customer -> mapToResponseDto(customer)).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CustomerResponseDto updateCustomer(Integer customerId, CustomerRequestDto customerRequestDto) {
         // Get logged-in user
