@@ -239,11 +239,25 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public String getBestPerformingEmployee() {
-        return leadsRepository.findBestPerformingEmployee().stream()
+    public BestEmployeeDto getBestPerformingEmployee() {
+        return leadsRepository.findBestPerformingEmployee()
+                .stream()
                 .findFirst()
-                .map(user -> user.getName())
-                .orElse("No top performing employee found");
+                .map(employee -> {
+
+                    double conversionRate = getConversionRateByEmployee(employee.getId());
+
+                    return new BestEmployeeDto(
+                            employee.getId(),
+                            employee.getName(),
+                            conversionRate
+                    );
+                })
+                .orElse(new BestEmployeeDto(
+                        null,
+                        "No top performing employee found",
+                        0.0
+                ));
     }
 
     @Override
@@ -413,6 +427,27 @@ public class AdminServiceImpl implements AdminService {
         employee.setBlockRemovalRequested(true);
         employee.setBlockRemovalReason(reason);
         userRepository.save(employee);
+    }
+
+    @Override
+    public double getConversionRateByEmployee(Integer employeeId) {
+
+        long totalLeads = leadsRepository.countByEmployeeId(employeeId);
+
+        long closedDeals = leadsRepository.countByEmployeeIdAndStatus(
+                employeeId,
+                LeadStatus.CLOSED
+        );
+
+        if (totalLeads == 0) {
+            return 0.0;
+        }
+
+        double rawRate = ((double) closedDeals / totalLeads) * 100;
+
+        return BigDecimal.valueOf(rawRate)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
 

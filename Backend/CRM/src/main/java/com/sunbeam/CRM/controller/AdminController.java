@@ -128,12 +128,7 @@ public class AdminController {
     @GetMapping("/analytics/best-employee")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getBestPerformingEmployee(){
-        String bestEmployee = adminService.getBestPerformingEmployee();
-
-        if(bestEmployee == null){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(bestEmployee);
+        return ResponseEntity.ok(adminService.getBestPerformingEmployee());
     }
 
     @DeleteMapping("/employees/{id}")

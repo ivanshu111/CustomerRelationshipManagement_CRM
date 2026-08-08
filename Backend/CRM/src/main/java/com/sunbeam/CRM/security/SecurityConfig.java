@@ -2,6 +2,7 @@ package com.sunbeam.CRM.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -38,6 +39,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/signin", "/auth/request-access").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/recruitment/register").permitAll()
+                        .requestMatchers("/api/recruitment/applicants/**")
+                        .hasRole("ADMIN")
                         .requestMatchers("/auth/register").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

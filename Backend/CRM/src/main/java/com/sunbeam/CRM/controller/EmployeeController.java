@@ -8,10 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,4 +44,12 @@ public class EmployeeController {
         response.put("message", "Password updated successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/analytics/conversion-rate/{employeeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    public ResponseEntity<Double> getConversionRateByEmployee(@PathVariable Integer employeeId) {
+        double conversionRate = adminService.getConversionRateByEmployee(employeeId);
+        return ResponseEntity.ok(conversionRate);
+    }
+
 }
