@@ -24,4 +24,8 @@ public interface LeadsRepository  extends JpaRepository<Leads, Integer> {
     List<Users> findBestPerformingEmployee();
 
     long countByStatus(LeadStatus status);
+
+    long countByEmployeeId(Integer employeeId);
+
+    long countByEmployeeIdAndStatus(Integer employeeId, LeadStatus leadStatus);
 }

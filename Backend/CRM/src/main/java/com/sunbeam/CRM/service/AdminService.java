@@ -3,14 +3,10 @@ package com.sunbeam.CRM.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.sunbeam.CRM.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.sunbeam.CRM.dto.BlockRequestDto;
-import com.sunbeam.CRM.dto.CustomerResponseDto;
-import com.sunbeam.CRM.dto.EmployeeResponseDto;
-import com.sunbeam.CRM.dto.InteractionResponseDto;
-import com.sunbeam.CRM.dto.ResignationRequestDto;
 import com.sunbeam.CRM.entities.Users;
 
 public interface AdminService {
@@ -38,7 +34,8 @@ public interface AdminService {
 
     void restoreEmployee(Integer employeeId);
 
-    String getBestPerformingEmployee();
+    BestEmployeeDto getBestPerformingEmployee();
+
 
     void softDeleteEmployee(Integer id);
 
@@ -51,7 +48,7 @@ public interface AdminService {
      void requestUnblock(String reason);
 
 
-
+    double getConversionRateByEmployee(Integer employeeId);
 
     double getConversionRate();
 }
