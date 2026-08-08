@@ -17,7 +17,7 @@ public class RestClientConfig {
     @Qualifier("emailRestClient")
     public RestClient emailRestClient() {
         return RestClient.builder()
-                .baseUrl("http://localhost:5164")
+                .baseUrl("http://localhost:5140")
                 .build();
     }
 
