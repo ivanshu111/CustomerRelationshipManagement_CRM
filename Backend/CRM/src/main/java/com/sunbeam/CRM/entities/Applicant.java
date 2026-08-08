@@ -57,6 +57,5 @@ public class Applicant {
 
     @JsonIgnore
     @OneToOne(mappedBy = "applicant", cascade = CascadeType.ALL)
-    @Column(name="ai_evaluation")
     private AIEvaluation aiEvaluation;
 }

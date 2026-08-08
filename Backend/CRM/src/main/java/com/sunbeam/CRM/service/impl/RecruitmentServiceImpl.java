@@ -32,8 +32,7 @@ public class RecruitmentServiceImpl implements RecruitmentService {
     private final AIService aiService;
     private final ModelMapper modelMapper;
 
-    @Override
-    @Transactional
+    @Transactional(readOnly = false)
     public void registerApplicant(ApplicantRegistrationRequestDto request) {
 
         if (applicantRepository.existsByEmail(request.getEmail())) {
@@ -46,13 +45,20 @@ public class RecruitmentServiceImpl implements RecruitmentService {
 
         Applicant applicant = modelMapper.map(request, Applicant.class);
 
+        // Save applicant first so it gets an ID
         applicantRepository.save(applicant);
 
-        AIEvaluationResponseDto aiResponse = aiService.evaluateApplicant(applicant);
+        // Call Python AI service
+        AIEvaluationResponseDto aiResponse =
+                aiService.evaluateApplicant(applicant);
 
-        AIEvaluation evaluation = modelMapper.map(aiService,AIEvaluation.class);
+        // Map Python response to AIEvaluation
+        AIEvaluation evaluation =
+                modelMapper.map(aiResponse, AIEvaluation.class);
+
         evaluation.setApplicant(applicant);
 
+        // Save AI evaluation
         aiEvaluationRepository.save(evaluation);
     }
 
