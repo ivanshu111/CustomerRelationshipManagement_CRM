@@ -1,6 +1,7 @@
 package com.sunbeam.CRM.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -15,17 +16,21 @@ public class RestClientConfig {
     //    }
     @Bean
     @Qualifier("emailRestClient")
-    public RestClient emailRestClient() {
+    public RestClient emailRestClient(
+            @Value("${email.service.base-url}") String baseUrl) {
+
         return RestClient.builder()
-                .baseUrl("http://localhost:5140")
+                .baseUrl(baseUrl)
                 .build();
     }
 
     @Bean
     @Qualifier("aiRestClient")
-    public RestClient aiRestClient() {
+    public RestClient aiRestClient(
+            @Value("${ai.service.base-url}") String baseUrl) {
+
         return RestClient.builder()
-                .baseUrl("http://localhost:8000")
+                .baseUrl(baseUrl)
                 .build();
     }
 
