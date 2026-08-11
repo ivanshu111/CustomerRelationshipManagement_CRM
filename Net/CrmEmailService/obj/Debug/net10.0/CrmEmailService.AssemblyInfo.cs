@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CrmEmailService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+71fa8ba49de7ec575c3d6920f4e602a82287771d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e0b9dce29b2dea32df334efaeac76a41d1d1a27")]
 [assembly: System.Reflection.AssemblyProductAttribute("CrmEmailService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CrmEmailService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

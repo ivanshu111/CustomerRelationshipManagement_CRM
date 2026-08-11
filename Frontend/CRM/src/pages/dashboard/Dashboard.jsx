@@ -44,6 +44,15 @@ import {
   markAllNotificationsAsRead,
 } from "../../api/notificatonApi";
 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
+
 import Modal from "../../components/Modal";
 import { RegisterForm } from "../auth/RegisterForm";
 import { getProfile } from "../../api/authApi";
@@ -95,18 +104,7 @@ export const Dashboard = () => {
   const [customerSearch, setCustomerSearch] = useState("");
   const [employeeSearch, setEmployeeSearch] = useState("");
 
-
   const [employeeConversionRate, setEmployeeConversionRate] = useState(0);
-
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
-  
-  const [applicants, setApplicants] = useState([]);
-  const [applicantsLoading, setApplicantsLoading] = useState(false);
-  const [applicantsError, setApplicantsError] = useState("");
-  const [selectedApplicantId, setSelectedApplicantId] = useState(null);
-  const [isApplicantModalOpen, setIsApplicantModalOpen] = useState(false);
  
   const [stats, setStats] = useState({
     customers: 0,
@@ -119,7 +117,6 @@ export const Dashboard = () => {
     conversionRate: 0,
   },
   });
-
   const navigate = useNavigate();
 
   const COLORS = [
@@ -130,6 +127,16 @@ export const Dashboard = () => {
     "#8884d8",
     "#82ca9d",
   ];
+  
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [applicantsError, setApplicantsError] = useState("");
+  const [selectedApplicantId, setSelectedApplicantId] = useState(null);
+  const [isApplicantModalOpen, setIsApplicantModalOpen] = useState(false);
 
   const fetchCustomersData = (page = customerPage, search = customerSearch) => {
     if (user && user.role === "ADMIN") {
@@ -145,7 +152,7 @@ export const Dashboard = () => {
         .catch((err) => console.error("Error fetching customers:", err));
     }
   };
-    
+
   const fetchApplicants = async () => {
     try {
       setApplicantsLoading(true);
@@ -166,7 +173,7 @@ export const Dashboard = () => {
     }
   };
 
-   useEffect(() => {
+ useEffect(() => {
   const fetchUnreadCount = async () => {
     if (!user) return;
 
@@ -185,64 +192,67 @@ export const Dashboard = () => {
   fetchUnreadCount();
 }, [user]);
 
-        
-    useEffect(() => {
-    const fetchNotifications = async () => {
-        if (!user) return;
 
-        try {
-        const response = await getMyNotifications();
+  
 
-        setNotifications(response.data);
-        } catch (error) {
-        console.error(
-            "Failed to fetch notifications:",
-            error
-        );
-        }
-    };
-    fetchNotifications();
-    }, [user]);
+  useEffect(() => {
+  const fetchNotifications = async () => {
+    if (!user) return;
 
-    useEffect(() => {
-    const handleNewNotification = (event) => {
-        const newNotification = event.detail;
+    try {
+      const response = await getMyNotifications();
 
-        console.log(
-        "New notification received in Dashboard:",
-        newNotification
-        );
+      setNotifications(response.data);
+    } catch (error) {
+      console.error(
+        "Failed to fetch notifications:",
+        error
+      );
+    }
+  };
 
-        // Add new notification to the top
-        setNotifications((prevNotifications) => [
-        newNotification,
-        ...prevNotifications,
-        ]);
+  fetchNotifications();
+}, [user]);
 
-        // Increase unread count
-        setUnreadCount((prevCount) => prevCount + 1);
-    };
+  useEffect(() => {
+  const handleNewNotification = (event) => {
+    const newNotification = event.detail;
 
-    window.addEventListener(
-        "new-notification",
-        handleNewNotification
+    console.log(
+      "New notification received in Dashboard:",
+      newNotification
     );
 
-    return () => {
-        window.removeEventListener(
-        "new-notification",
-        handleNewNotification
-        );
-    };
-    }, []);
+    // Add new notification to the top
+    setNotifications((prevNotifications) => [
+      newNotification,
+      ...prevNotifications,
+    ]);
 
-    useEffect(() => {
+    // Increase unread count
+    setUnreadCount((prevCount) => prevCount + 1);
+  };
+
+  window.addEventListener(
+    "new-notification",
+    handleNewNotification
+  );
+
+  return () => {
+    window.removeEventListener(
+      "new-notification",
+      handleNewNotification
+    );
+  };
+}, []);
+
+  useEffect(() => {
     if (activeTab === "customers") {
       fetchCustomersData(customerPage, customerSearch);
     }
   }, [customerPage, customerSearch, activeTab]);
 
-    const fetchData = () => {
+  const fetchData = () => {
     if (user) {
       console.log("fetchData called");
       console.log("Current user:", user);
@@ -309,7 +319,7 @@ export const Dashboard = () => {
         getPendingAccessRequests()
           .then((res) => setPendingAccessRequests(res.data))
           .catch((err) => console.error(err));
-        } else if (user.role === "EMPLOYEE") {
+      } else if (user.role === "EMPLOYEE") {
         // Fetch Employee data
         Promise.all([
           getMyCustomers(),
@@ -339,209 +349,121 @@ export const Dashboard = () => {
           .catch((err) => {
             console.error("Error fetching employee conversion rate:", err);
           });
-        }
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [user]);
-
-    if (loading) {
-        return (
-        <div className="flex items-center justify-center min-h-screen">
-            Loading...
-        </div>
-        );
+      }
     }
+  };
 
-    if (!user) {
-        navigate("/login");
-        return null;
-    }
+  useEffect(() => {
+    fetchData();
+  }, [user]);
 
-    useEffect(() => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+
+  useEffect(() => {
   if (activeTab === "applicants") {
     fetchApplicants();
   }
   }, [activeTab]);
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
-    const handleMarkAsRead = async (notificationId) => {
-    try {
-        await markNotificationAsRead(
-        notificationId
-        );
-
-        setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) =>
-            notification.id === notificationId
-            ? {
-                ...notification,
-                read: true,
-                }
-            : notification
-        )
-        );
-
-        setUnreadCount((prevCount) =>
-        Math.max(prevCount - 1, 0)
-        );
-    } catch (error) {
-        console.error(
-        "Failed to mark notification as read:",
-        error
-        );
+  const handleRequestUnblock = async (e) => {
+    e.preventDefault();
+    if (!unblockReason.trim()) {
+      toast.error("Please enter a reason for your request");
+      return;
     }
-    };
 
-    const handleMarkAllAsRead = async () => {
+    setIsSubmittingUnblock(true);
     try {
-        await markAllNotificationsAsRead();
+      await requestUnblock(unblockReason);
+      toast.success("Block removal request submitted successfully!");
+      setUnblockReason("");
+      getProfile()
+        .then((response) => {
+          login(response.data);
+        })
+        .catch((err) => console.error("Error refreshing profile:", err));
+    } catch (err) {
+      console.error("Failed to submit unblock request:", err);
+      toast.error(err.response?.data?.message || "Failed to submit request.");
+    } finally {
+      setIsSubmittingUnblock(false);
+    }
+  };
 
-        setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) => ({
-            ...notification,
-            read: true,
-        }))
-        );
+  const handleApproveAccess = async (id) => {
+    if (!window.confirm("Are you sure you want to approve this access request?")) return;
+    try {
+      await approveAccessRequest(id);
+      toast.success("Access request approved successfully!");
+      fetchData();
+    } catch (err) {
+      console.error("Failed to approve access:", err);
+      toast.error(err.response?.data?.message || "Failed to approve access request.");
+    }
+  };
 
-        setUnreadCount(0);
-        } catch (error) {
-        console.error(
-            "Failed to mark all notifications as read:",
-            error
-        );
-        }
-    };
+  const handleRejectAccess = async (id) => {
+    if (!window.confirm("Are you sure you want to reject and delete this access request?")) return;
+    try {
+      await rejectAccessRequest(id);
+      toast.success("Access request rejected.");
+      fetchData();
+    } catch (err) {
+      console.error("Failed to reject access:", err);
+      toast.error(err.response?.data?.message || "Failed to reject access request.");
+    }
+  };
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
+  const handleRegisterSuccess = () => {
+    setIsRegisterModalOpen(false);
+    fetchData();
+  };
 
-    const handleAcceptApplicant = async (applicantId) => {
-        try {
-        await acceptApplicant(applicantId);
+  const handleAddCustomerSuccess = () => {
+    setIsAddCustomerModalOpen(false);
+    fetchData();
+  };
 
-        // Update the applicant status in the UI
-        setApplicants((prevApplicants) =>
-            prevApplicants.map((applicant) =>
-            applicant.id === applicantId
-                ? { ...applicant, status: "ACCEPTED" }
-                : applicant
-            )
-        );
+  const handleEmployeeClick = (id) => {
+    setSelectedEmployeeId(id);
+    setIsDetailsModalOpen(true);
+  };
 
-        } catch (error) {
-        console.error("Failed to accept applicant:", error);
-        alert("Failed to accept applicant");
-        }
-    };
+  const handleCustomerClick = (id) => {
+    setSelectedCustomerId(id);
+    setIsCustomerModalOpen(true);
+  };
 
-    const handleRejectApplicant = async (applicantId) => {
-        try {
-        await rejectApplicant(applicantId);
+  const handleHistoryClick = (e, id) => {
+    e.stopPropagation();
+    setSelectedCustomerId(id);
+    setIsHistoryModalOpen(true);
+  };
 
-        // Update the applicant status in the UI
-        setApplicants((prevApplicants) =>
-            prevApplicants.map((applicant) =>
-            applicant.id === applicantId
-                ? { ...applicant, status: "REJECTED" }
-                : applicant
-            )
-        );
-
-        } catch (error) {
-        console.error("Failed to reject applicant:", error);
-        alert("Failed to reject applicant");
-        }
-    };
-
-    const handleRegisterSuccess = () => {
-        setIsRegisterModalOpen(false);
-        fetchData();
-    };
-    
-    const handleStarEmployeeClick = () => {
+  const handleStarEmployeeClick = () => {
     if (stats.bestEmployee.id) {
       handleEmployeeClick(stats.bestEmployee.id);
     }
-    };
+  };
 
-
-    
-    const handleAddCustomerSuccess = () => {
-        setIsAddCustomerModalOpen(false);
-        fetchData();
-    };
-
-	
-    const handleRequestUnblock = async (e) => {
-        e.preventDefault();
-        if (!unblockReason.trim()) {
-        toast.error("Please enter a reason for your request");
-        return;
-    }
-    setIsSubmittingUnblock(true);
-        try {
-            await requestUnblock(unblockReason);
-            toast.success("Block removal request submitted successfully!");
-            setUnblockReason("");
-            getProfile()
-                .then((response) => {
-                login(response.data);
-                })
-                .catch((err) => console.error("Error refreshing profile:", err));
-        } catch (err) {
-            console.error("Failed to submit unblock request:", err);
-            toast.error(err.response?.data?.message || "Failed to submit request.");
-        } finally {
-        setIsSubmittingUnblock(false);
-        }
-    };
-
-    const handleApproveAccess = async (id) => {
-        if (!window.confirm("Are you sure you want to approve this access request?")) return;
-        try {
-            await approveAccessRequest(id);
-            toast.success("Access request approved successfully!");
-            fetchData();
-        } catch (err) {
-            console.error("Failed to approve access:", err);
-            toast.error(err.response?.data?.message || "Failed to approve access request.");
-        }
-    };
-
-    const handleRejectAccess = async (id) => {
-        if (!window.confirm("Are you sure you want to reject and delete this access request?")) return;
-        try {
-        await rejectAccessRequest(id);
-        toast.success("Access request rejected.");
-        fetchData();
-        } catch (err) {
-        console.error("Failed to reject access:", err);
-        toast.error(err.response?.data?.message || "Failed to reject access request.");
-        }
-    };
-
-    const handleEmployeeClick = (id) => {
-        setSelectedEmployeeId(id);
-        setIsDetailsModalOpen(true);
-    };
-
-    const handleCustomerClick = (id) => {
-        setSelectedCustomerId(id);
-        setIsCustomerModalOpen(true);
-    };
-
-    const handleHistoryClick = (e, id) => {
-        e.stopPropagation();
-        setSelectedCustomerId(id);
-        setIsHistoryModalOpen(true);
-    };
-
-    const handleApproveResignation = async (id) => {
+  const handleApproveResignation = async (id) => {
     if (!window.confirm("Are you sure you want to APPROVE this resignation? This employee will be inactivated and their customers reassigned to you.")) return;
     try {
       await approveResignation(id);
@@ -562,9 +484,9 @@ export const Dashboard = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to reject resignation.");
     }
-  };
+  };  
   
-  const handleUnblockEmployee = async (id) => {
+    const handleUnblockEmployee = async (id) => {
       if (!window.confirm("Are you sure you want to unblock this employee? Their status will be set back to ACTIVE.")) return;
       try {
         await unblockEmployee(id);
@@ -586,7 +508,7 @@ export const Dashboard = () => {
       }
     };
 
-    const filteredEmployees = employees.filter((emp) => {
+  const filteredEmployees = employees.filter((emp) => {
     const term = employeeSearch.toLowerCase();
     return (
       (emp.name && emp.name.toLowerCase().includes(term)) ||
@@ -636,9 +558,94 @@ export const Dashboard = () => {
     );
   });
 
+  const handleMarkAsRead = async (notificationId) => {
+  try {
+    await markNotificationAsRead(
+      notificationId
+    );
+
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              read: true,
+            }
+          : notification
+      )
+    );
+
+    setUnreadCount((prevCount) =>
+      Math.max(prevCount - 1, 0)
+    );
+  } catch (error) {
+    console.error(
+      "Failed to mark notification as read:",
+      error
+    );
+  }
+};
+
+  const handleMarkAllAsRead = async () => {
+  try {
+    await markAllNotificationsAsRead();
+
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({
+        ...notification,
+        read: true,
+      }))
+    );
+
+    setUnreadCount(0);
+    } catch (error) {
+      console.error(
+        "Failed to mark all notifications as read:",
+        error
+      );
+    }
+  };
 
 
-    // I : declaration Part
+  const handleAcceptApplicant = async (applicantId) => {
+    try {
+      await acceptApplicant(applicantId);
+
+      // Update the applicant status in the UI
+      setApplicants((prevApplicants) =>
+        prevApplicants.map((applicant) =>
+          applicant.id === applicantId
+            ? { ...applicant, status: "ACCEPTED" }
+            : applicant
+        )
+      );
+
+    } catch (error) {
+      console.error("Failed to accept applicant:", error);
+      alert("Failed to accept applicant");
+    }
+  };
+
+  const handleRejectApplicant = async (applicantId) => {
+    try {
+      await rejectApplicant(applicantId);
+
+      // Update the applicant status in the UI
+      setApplicants((prevApplicants) =>
+        prevApplicants.map((applicant) =>
+          applicant.id === applicantId
+            ? { ...applicant, status: "REJECTED" }
+            : applicant
+        )
+      );
+
+    } catch (error) {
+      console.error("Failed to reject applicant:", error);
+      alert("Failed to reject applicant");
+    }
+  };
+
+
 
   console.log("Current user object in Dashboard:", user);
 
@@ -1251,8 +1258,6 @@ export const Dashboard = () => {
                   </div>
                 </div>
               )}
-
-
               {activeTab === "employees" && (
                 <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
@@ -1597,7 +1602,11 @@ export const Dashboard = () => {
                     </div>
                   )}
 
-                  {activeTab === "customers" && (
+                
+                </div>
+              )}
+
+              {activeTab === "customers" && (
                 <div className="bg-slate-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200/60">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-gray-900">Global Customer Base</h3>
@@ -1966,13 +1975,6 @@ export const Dashboard = () => {
 
                 </div>
               )}
-
-                
-                </div>
-              )}
-
-            {/* I : Customer Tab   */}
-
             </div>
           ) : user.employeeStatus === "BLOCKED" ? (
             <div className="max-w-md mx-auto my-12 bg-white border border-red-200 shadow-xl rounded-2xl p-6 relative overflow-hidden">
@@ -2321,25 +2323,6 @@ export const Dashboard = () => {
       </Modal>
 
       <Modal
-        isOpen={isResignModalOpen}
-        onClose={() => setIsResignModalOpen(false)}
-        title="Request Resignation"
-      >
-        <ResignationForm
-          onSuccess={() => {
-            setIsResignModalOpen(false);
-            getProfile()
-              .then((response) => {
-                login(response.data);
-              })
-              .catch((err) => console.error("Error refreshing profile after resignation:", err));
-            fetchData();
-          }}
-          onCancel={() => setIsResignModalOpen(false)}
-        />
-      </Modal>
-
-      <Modal
         isOpen={isAddCustomerModalOpen}
         onClose={() => setIsAddCustomerModalOpen(false)}
         title="Add New Customer"
@@ -2356,6 +2339,25 @@ export const Dashboard = () => {
         title="Employee Details"
       >
         <EmployeeDetails employeeId={selectedEmployeeId} onUpdate={fetchData} />
+      </Modal>
+
+      <Modal
+        isOpen={isResignModalOpen}
+        onClose={() => setIsResignModalOpen(false)}
+        title="Request Resignation"
+      >
+        <ResignationForm
+          onSuccess={() => {
+            setIsResignModalOpen(false);
+            getProfile()
+              .then((response) => {
+                login(response.data);
+              })
+              .catch((err) => console.error("Error refreshing profile after resignation:", err));
+            fetchData();
+          }}
+          onCancel={() => setIsResignModalOpen(false)}
+        />
       </Modal>
 
       <Modal
@@ -2384,7 +2386,6 @@ export const Dashboard = () => {
           onCancel={() => setIsChangePasswordModalOpen(false)}
         />
       </Modal>
-
       <Modal
           isOpen={isApplicantModalOpen}
           onClose={() => setIsApplicantModalOpen(false)}
