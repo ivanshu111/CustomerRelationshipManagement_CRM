@@ -1,0 +1,44 @@
+﻿# Environment variables and API secrets
+.env
+*.env
+.env.*
+!.env.example
+
+# Java / Maven build output
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# .NET build output & local cache
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Node / React build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+ENV/
+env/
+
+# IDE configurations
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

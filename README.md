@@ -66,12 +66,12 @@ The Enterprise CRM supports two primary user personas with specialized, authenti
 - **Real-Time Messaging**: Server-Sent Events (Spring `SseEmitter`)
 - **Database Engine**: MySQL 5.7+ / 8.x
 - **ORM Layer**: Hibernate & Spring Data JPA
-- **Dependency/Build Tool**: Maven (Configured in [pom.xml](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/Backend/CRM/pom.xml))
+- **Dependency/Build Tool**: Maven (Configured in [pom.xml](Backend/CRM/pom.xml))
 - **Utilities**: ModelMapper, Lombok, Validation API, JSONWebToken (`jjwt-api`)
 
 ### Frontend SPA (`/Frontend/CRM`)
 
-- **Core Library**: React 19 (Configured in [package.json](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/Frontend/CRM/package.json))
+- **Core Library**: React 19 (Configured in [package.json](Frontend/CRM/package.json))
 - **Build Tool**: Vite 8.x
 - **Styling**: Tailwind CSS v4.x (Utility-first styling with high visual aesthetics)
 - **Routing**: React Router DOM v7
@@ -402,4 +402,4 @@ The local console will output the active address, typically **http://localhost:5
 
 ## 📚 Documentation Reference
 
-For an in-depth review of specific endpoints, detailed entity definitions, and known limitations, check out the developer-facing [PROJECT_DOCUMENTATION.md](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/PROJECT_DOCUMENTATION.md) and the AI module [chatbot/README.md](file:///E:/crmProjectLatest/CustomerRelationshipManagement_CRM/chatbot/README.md).
+For an in-depth review of specific endpoints, detailed entity definitions, and known limitations, check out the developer-facing [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) and the AI module [chatbot/README.md](chatbot/README.md).

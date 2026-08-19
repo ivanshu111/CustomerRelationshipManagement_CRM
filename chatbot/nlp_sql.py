@@ -10,14 +10,17 @@ from database import execute_raw_sql
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-# Load environment variables from the exact directory of this file
+# Load environment variables
 ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(dotenv_path=ENV_PATH, override=True)
+load_dotenv(dotenv_path=ENV_PATH)
+load_dotenv()
 
 def get_gemini_api_key() -> str:
-    """Dynamically loads and returns the current GEMINI_API_KEY from .env."""
-    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    """Returns the current GEMINI_API_KEY from environment or .env."""
     key = os.getenv("GEMINI_API_KEY", "").strip().strip('"').strip("'")
+    if not key and os.path.exists(ENV_PATH):
+        load_dotenv(dotenv_path=ENV_PATH)
+        key = os.getenv("GEMINI_API_KEY", "").strip().strip('"').strip("'")
     return key
 
 def get_model_candidates() -> list:
@@ -40,7 +43,7 @@ Database Engine: MySQL
 
 Tables & Columns:
 1. `users`: Stores system employees and administrators.
-   - `id` (INT, Primary Key, Auto-Increment)
+   - `user_id` (INT, Primary Key, Auto-Increment)
    - `name` (VARCHAR)
    - `email` (VARCHAR, Unique)
    - `password` (VARCHAR - account password)
@@ -49,12 +52,12 @@ Tables & Columns:
    - `block_removal_requested` (TINYINT/BOOLEAN - default 0)
    - `created_at` (DATETIME)
 
-2. `customer`: Stores customer profiles.
-   - `id` (INT, Primary Key, Auto-Increment)
+2. `customers`: Stores customer profiles (NOTE: table name is plural 'customers').
+   - `customer_id` (INT, Primary Key, Auto-Increment)
    - `name` (VARCHAR)
    - `email` (VARCHAR, Unique)
    - `phone` (VARCHAR, Unique)
-   - `user_id` (INT, Foreign Key referencing `users.id` - The assigned employee/sales rep)
+   - `user_id` (INT, Foreign Key referencing `users.user_id` - The assigned employee/sales rep)
    - `created_at` (DATETIME)
 
 3. `interaction`: Logs customer interactions and follow-ups.
@@ -63,14 +66,14 @@ Tables & Columns:
    - `interaction_date` (DATETIME - default NOW())
    - `status` (ENUM: 'NEW', 'CONTACTED', 'INTERESTED', 'NOT_INTERESTED', 'CLOSED', 'PENDING')
    - `next_follow_up_date` (DATE - e.g. 'YYYY-MM-DD' or NULL)
-   - `customer_id` (INT, Foreign Key referencing `customer.id`)
-   - `employee_id` (INT, Foreign Key referencing `users.id`)
+   - `customer_id` (INT, Foreign Key referencing `customers.customer_id`)
+   - `employee_id` (INT, Foreign Key referencing `users.user_id`)
 
 4. `leads`: Pipeline conversion tracking history.
    - `id` (INT, Primary Key, Auto-Increment)
    - `status` (ENUM: 'NEW', 'CONTACTED', 'INTERESTED', 'NOT_INTERESTED', 'CLOSED', 'PENDING')
-   - `customer_id` (INT, Foreign Key referencing `customer.id`)
-   - `employee_id` (INT, Foreign Key referencing `users.id`)
+   - `customer_id` (INT, Foreign Key referencing `customers.customer_id`)
+   - `employee_id` (INT, Foreign Key referencing `users.user_id`)
 """
 
 # Prompt template for SQL generation
@@ -91,10 +94,10 @@ Rules:
 3. For INSERT into `users`:
    - Set `name`, `email`, `password`, `role` (UPPERCASE: 'ADMIN' or 'EMPLOYEE'), `employee_status` ('ACTIVE'), `block_removal_requested` (0), and `created_at` (NOW()).
    - If password is provided in user input, use that exact password string. If not provided, default password is 'password123'.
-4. For INSERT into `customer`, `interaction`, or `leads`: set proper FKs and standard datetime fields using NOW() or CURDATE().
+4. For INSERT into `customers`, `interaction`, or `leads`: set proper FKs and standard datetime fields using NOW() or CURDATE().
 5. If User Persona is 'EMPLOYEE':
-   - For SELECT queries, restrict results so customer.user_id = {user_id} or employee_id = {user_id}.
-   - For INSERT into `customer`, set `user_id` = {user_id}.
+   - For SELECT queries, restrict results so customers.user_id = {user_id} or employee_id = {user_id}.
+   - For INSERT into `customers`, set `user_id` = {user_id}.
    - For INSERT into `interaction` or `leads`, set `employee_id` = {user_id}.
 6. If User Persona is 'ADMIN', they can query or create entries across any user/employee ID.
 

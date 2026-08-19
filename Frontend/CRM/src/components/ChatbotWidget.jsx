@@ -38,7 +38,8 @@ export default function ChatbotWidget() {
 
     try {
       // Call FastAPI Chatbot Endpoint
-      const response = await axios.post("http://localhost:8000/api/chat/sql", {
+      const chatbotApiUrl = import.meta.env.VITE_CHATBOT_API_URL || "http://localhost:8000";
+      const response = await axios.post(`${chatbotApiUrl}/api/chat/sql`, {
         question: textToSend,
         user_role: user.role || "EMPLOYEE",
         user_id: user.id || 1,

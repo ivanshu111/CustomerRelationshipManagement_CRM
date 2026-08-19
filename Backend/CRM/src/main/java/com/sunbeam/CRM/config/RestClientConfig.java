@@ -9,15 +9,10 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig {
 
-    //    Java Mail Service
-    //    @Bean
-    //    public RestClient restClient() {
-    //        return RestClient.builder().build();
-    //    }
     @Bean
     @Qualifier("emailRestClient")
     public RestClient emailRestClient(
-            @Value("${email.service.base-url}") String baseUrl) {
+            @Value("${email.service.base-url:http://localhost:5140}") String baseUrl) {
 
         return RestClient.builder()
                 .baseUrl(baseUrl)
@@ -27,7 +22,7 @@ public class RestClientConfig {
     @Bean
     @Qualifier("aiRestClient")
     public RestClient aiRestClient(
-            @Value("${ai.service.base-url}") String baseUrl) {
+            @Value("${ai.service.base-url:http://localhost:8000}") String baseUrl) {
 
         return RestClient.builder()
                 .baseUrl(baseUrl)

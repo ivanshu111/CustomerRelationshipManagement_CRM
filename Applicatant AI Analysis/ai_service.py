@@ -8,10 +8,16 @@ from guardrails import validate_input, validate_output
 
 import json
 
-client = genai.Client(api_key=GEMINI_API_KEY)
-
 
 def evaluate_candidate(name: str, answers: list[str]):
+
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY is missing. Please set GEMINI_API_KEY in the environment or .env file."
+        )
+
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
     try:
         validate_input(name, answers)

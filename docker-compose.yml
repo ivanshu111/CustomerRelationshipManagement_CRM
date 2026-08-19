@@ -1,0 +1,135 @@
+services:
+  # 1. MySQL Database Container
+  mysql-db:
+    image: mysql:8.0
+    container_name: crm-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: db_crm
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - crm_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  # 2. .NET Email Microservice
+  email-service:
+    build:
+      context: ./Net/CrmEmailService
+      dockerfile: Dockerfile
+    container_name: crm-email-service
+    restart: always
+    ports:
+      - "5140:5140"
+    environment:
+      - EmailSettings__SmtpHost=smtp.gmail.com
+      - EmailSettings__SmtpPort=587
+      - EmailSettings__Username=
+      - EmailSettings__Password=
+      - EmailSettings__SenderEmail=
+      - EmailSettings__SenderName=CRM System
+      - ApiSecurity__ApiKey=default_internal_email_key
+    networks:
+      - crm-network
+
+  # 3. Applicant AI Analysis Microservice
+  applicant-ai-service:
+    build:
+      context: ./Applicatant AI Analysis
+      dockerfile: Dockerfile
+    container_name: crm-applicant-ai
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_SERVICE_API_KEY=default_internal_ai_key
+    networks:
+      - crm-network
+
+  # 4. Chatbot NLP to SQL AI Microservice
+  chatbot-service:
+    build:
+      context: ./chatbot
+      dockerfile: Dockerfile
+    container_name: crm-chatbot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_NAME=db_crm
+    networks:
+      - crm-network
+
+  # 5. Core Spring Boot Backend API
+  backend-service:
+    build:
+      context: ./Backend/CRM
+      dockerfile: Dockerfile
+    container_name: crm-backend
+    restart: always
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      email-service:
+        condition: service_started
+      applicant-ai-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=jdbc:mysql://mysql-db:3306/db_crm?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - JWT_SECRET=c2VjdXJlSldUU2VjcmV0S2V5Rm9yQ1JNU3lzdGVtMjAyNiExMjM0NTY=
+      - EMAIL_SERVICE_BASE_URL=http://email-service:5140
+      - EMAIL_SERVICE_API_KEY=default_internal_email_key
+      - AI_SERVICE_BASE_URL=http://applicant-ai-service:8001
+      - AI_SERVICE_API_KEY=default_internal_ai_key
+    networks:
+      - crm-network
+
+  # 6. React Frontend SPA (Nginx)
+  frontend-service:
+    build:
+      context: ./Frontend/CRM
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8080
+        - VITE_CHATBOT_API_URL=http://localhost:8000
+    container_name: crm-frontend
+    restart: always
+    depends_on:
+      - backend-service
+      - chatbot-service
+    ports:
+      - "80:80"
+      - "5173:80"
+    networks:
+      - crm-network
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  crm_mysql_data:
