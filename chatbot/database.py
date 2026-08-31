@@ -7,19 +7,32 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Read Database Credentials from Environment
+DB_URL = os.getenv("DB_URL")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_NAME = os.getenv("DB_NAME", "crm_db")
+DB_NAME = os.getenv("DB_NAME", "defaultdb")
 
 # Create SQLAlchemy Database URL
-# Format: mysql+pymysql://username:password@host:port/database_name
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if DB_URL and DB_URL.strip():
+    DATABASE_URL = DB_URL.strip()
+    if DATABASE_URL.startswith("mysql://"):
+        DATABASE_URL = "mysql+pymysql://" + DATABASE_URL[8:]
+    elif DATABASE_URL.startswith("jdbc:mysql://"):
+        DATABASE_URL = "mysql+pymysql://" + DATABASE_URL[13:]
+else:
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+# Configure SSL for Cloud MySQL (Aiven / TiDB)
+connect_args = {}
+if "aivencloud.com" in DATABASE_URL or "tidbcloud.com" in DATABASE_URL or os.getenv("DB_SSL", "").lower() in ["true", "required"]:
+    connect_args = {"ssl": {"ssl_mode": "REQUIRED"}}
 
 # Create SQLAlchemy Engine
 engine = create_engine(
     DATABASE_URL,
+    connect_args=connect_args,
     pool_pre_ping=True,  # Automatically reconnect if connection drops
     pool_recycle=3600    # Recycle connections every hour
 )

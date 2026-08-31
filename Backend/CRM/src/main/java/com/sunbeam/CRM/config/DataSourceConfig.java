@@ -53,11 +53,12 @@ public class DataSourceConfig {
         String finalUser = resolveUsername();
         String finalPass = resolvePassword();
 
-        // If the URL was a full URI with credentials (e.g. mysql://user:pass@host:port/db)
-        if ((rawUrl != null && rawUrl.startsWith("mysql://")) || (dbUrl != null && dbUrl.startsWith("mysql://"))) {
+        // If the URL was a full URI with credentials (e.g. mysql://avnadmin:pass@host:port/db)
+        String rawOrDbUrl = (dbUrl != null && !dbUrl.trim().isEmpty()) ? dbUrl.trim() : rawUrl;
+        if (rawOrDbUrl != null && (rawOrDbUrl.startsWith("mysql://") || rawOrDbUrl.startsWith("jdbc:mysql://"))) {
             try {
-                String uriStr = (dbUrl != null && !dbUrl.isEmpty()) ? dbUrl : rawUrl;
-                URI uri = new URI(uriStr);
+                String cleanUri = rawOrDbUrl.startsWith("jdbc:") ? rawOrDbUrl.substring(5) : rawOrDbUrl;
+                URI uri = new URI(cleanUri);
                 String userInfo = uri.getUserInfo();
                 if (userInfo != null && userInfo.contains(":")) {
                     String[] parts = userInfo.split(":", 2);
@@ -81,32 +82,41 @@ public class DataSourceConfig {
     }
 
     private String resolveJdbcUrl() {
-        String url = (dbUrl != null && !dbUrl.isEmpty()) ? dbUrl : rawUrl;
-
-        if (url == null || url.trim().isEmpty()) {
-            return String.format("jdbc:mysql://%s:%s/%s?sslMode=REQUIRED&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true",
-                    dbHost, dbPort, dbName);
+        if (dbUrl != null && !dbUrl.trim().isEmpty()) {
+            String url = dbUrl.trim();
+            if (url.startsWith("mysql://")) {
+                url = "jdbc:" + url;
+            } else if (!url.startsWith("jdbc:")) {
+                url = "jdbc:mysql://" + url;
+            }
+            // Fix Aiven parameter ssl-mode to sslMode
+            url = url.replace("ssl-mode=", "sslMode=");
+            
+            if (!url.contains("allowPublicKeyRetrieval=")) {
+                String delimiter = url.contains("?") ? "&" : "?";
+                url = url + delimiter + "allowPublicKeyRetrieval=true";
+            }
+            if (!url.contains("sslMode=") && !url.contains("useSSL=")) {
+                String delimiter = url.contains("?") ? "&" : "?";
+                url = url + delimiter + "sslMode=REQUIRED";
+            }
+            return url;
         }
 
-        url = url.trim();
-
-        // If it starts with mysql://, convert to jdbc:mysql://
-        if (url.startsWith("mysql://")) {
-            url = "jdbc:" + url;
+        if (dbHost != null && !dbHost.trim().isEmpty() && !dbHost.equals("localhost")) {
+            boolean isCloud = dbHost.contains("aivencloud.com") || dbHost.contains("tidbcloud.com") || dbHost.contains("clever-cloud.com");
+            String sslParam = isCloud 
+                    ? "sslMode=REQUIRED&enabledTLSProtocols=TLSv1.2,TLSv1.3&allowPublicKeyRetrieval=true" 
+                    : "sslMode=PREFERRED&allowPublicKeyRetrieval=true";
+            return String.format("jdbc:mysql://%s:%s/%s?%s", dbHost.trim(), dbPort.trim(), dbName.trim(), sslParam);
         }
 
-        // If it does not start with jdbc: at all
-        if (!url.startsWith("jdbc:")) {
-            url = "jdbc:mysql://" + url;
+        if (rawUrl != null && !rawUrl.trim().isEmpty()) {
+            String url = rawUrl.trim().replace("ssl-mode=", "sslMode=");
+            return url;
         }
 
-        // Ensure proper SSL parameter for cloud DBs if not present
-        if (!url.contains("sslMode=") && !url.contains("useSSL=")) {
-            String delimiter = url.contains("?") ? "&" : "?";
-            url = url + delimiter + "sslMode=REQUIRED&allowPublicKeyRetrieval=true";
-        }
-
-        return url;
+        return String.format("jdbc:mysql://%s:%s/%s?sslMode=PREFERRED&allowPublicKeyRetrieval=true", dbHost, dbPort, dbName);
     }
 
     private String resolveUsername() {
