@@ -6,11 +6,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.net.URI;
 
 @Configuration
 public class DataSourceConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
 
     @Value("${spring.datasource.url:}")
     private String rawUrl;
@@ -63,11 +67,16 @@ public class DataSourceConfig {
             } catch (Exception ignored) {}
         }
 
+        logger.info("Connecting to Database at URL: {} with user: {}", finalUrl, finalUser);
+
         HikariDataSource ds = new HikariDataSource();
         ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
         ds.setJdbcUrl(finalUrl);
         ds.setUsername(finalUser);
         ds.setPassword(finalPass);
+        ds.setConnectionTimeout(30000);
+        ds.setMaximumPoolSize(10);
+        ds.setMinimumIdle(1);
         return ds;
     }
 
