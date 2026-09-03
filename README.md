@@ -403,3 +403,5 @@ The local console will output the active address, typically **http://localhost:5
 ## 📚 Documentation Reference
 
 For an in-depth review of specific endpoints, detailed entity definitions, and known limitations, check out the developer-facing [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) and the AI module [chatbot/README.md](chatbot/README.md).
+
+🔗 [Live Application] https://crm-frontend-ivanshu.vercel.app/
